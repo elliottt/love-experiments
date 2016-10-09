@@ -25,11 +25,13 @@ function initAnimation()
         while true do
             diff = yield()
             for key,anim in ipairs(animations) do
-                anim.acc = anim.acc + diff
-                while anim.acc >= anim.current.delay do
-                    anim.acc     = anim.acc - anim.current.delay
-                    anim.ix      = (anim.ix % anim.len) + 1
-                    anim.current = anim.frames[anim.ix]
+                if anim.running then
+                    anim.acc = anim.acc + diff
+                    while anim.acc >= anim.current.delay do
+                        anim.acc     = anim.acc - anim.current.delay
+                        anim.ix      = (anim.ix % anim.len) + 1
+                        anim.current = anim.frames[anim.ix]
+                    end
                 end
             end
         end
@@ -48,10 +50,23 @@ function Animation.new(frames)
     self.ix      = 1
     self.current = frames[self.ix]
     self.acc     = 0
+    self.running = true
 
     table.insert(animations, self)
 
     return self
+end
+
+function Animation.toggle(self)
+    self.running = not self.running
+end
+
+function Animation.pause(self)
+    self.running = true
+end
+
+function Animation.resume(self)
+    self.running = false
 end
 
 function Animation.start(self)
