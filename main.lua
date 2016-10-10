@@ -25,25 +25,26 @@ function love.draw()
     love.graphics.pop()
 end
 
+-- Key handlers
 local keys = {
     q = function()
         love.event.quit()
     end,
 
     h = function()
-        model:move(Pos.moveWest)
+        model:movePlayer(Pos.moveWest)
     end,
 
     j = function()
-        model:move(Pos.moveSouth)
+        model:movePlayer(Pos.moveSouth)
     end,
 
     k = function()
-        model:move(Pos.moveNorth)
+        model:movePlayer(Pos.moveNorth)
     end,
 
     l = function()
-        model:move(Pos.moveEast)
+        model:movePlayer(Pos.moveEast)
     end,
 }
 

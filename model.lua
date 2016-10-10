@@ -1,4 +1,6 @@
 
+require 'map'
+
 Pos = {}
 Pos.__index = Pos
 
@@ -16,19 +18,19 @@ function Pos.parts(self)
 end
 
 function Pos.moveNorth(self)
-    self.y = self.y - 1
+    return Pos.new(self.x,self.y - 1)
 end
 
 function Pos.moveEast(self)
-    self.x = self.x + 1
+    return Pos.new(self.x + 1, self.y)
 end
 
 function Pos.moveSouth(self)
-    self.y = self.y + 1
+    return Pos.new(self.x, self.y + 1)
 end
 
 function Pos.moveWest(self)
-    self.x = self.x - 1
+    return Pos.new(self.x - 1, self.y)
 end
 
 
@@ -48,16 +50,41 @@ end
 Model = {}
 Model.__index = Model
 
+local function genSeed()
+    return love.math.random(0, 2 ^ 54 - 1)
+end
+
 function Model.new()
     local self = setmetatable({}, Model)
 
     self.player = Character.new(15, Pos.new(0,0))
     self.mobs   = {}
     self.levels = {}
+    self.seed   = genSeed()
 
     return self
 end
 
-function Model.move(self, by)
-    by(self.player.pos)
+-- Generate a fresh level, or restore an already existing level.
+function Model.enterLevel(self, depth)
+    if self.levels[depth] then
+        return
+    else
+        self.levels[depth] = self.genLevel(depth)
+    end
+end
+
+-- Generate a fresh level, for the given depth.
+function Model.genLevel(self, depth)
+    return {}
+end
+
+-- Apply a function to the player's position, likely one of the Pos:move*
+-- functions.
+function Model.movePlayer(self, by)
+    local newPos = by(self.player.pos)
+
+    -- XXX: interpret the movement
+
+    self.player.pos = newPos
 end
