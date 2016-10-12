@@ -3,58 +3,45 @@
 
 require 'threads'
 require 'animation'
-require 'model'
+require 'game.model'
 require 'view'
+require 'game-state'
 
-local model = nil
-local view  = nil
+local menu  = MenuState:new()
+local game  = PlayingState:new()
+local state
+
+menu:init(game)
+game:init(menu)
+
+local function switchTo(newState)
+    state = newState
+    state:enter()
+end
 
 function love.load()
     initAnimation()
 
-    model = Model.new()
-    view  = View.new()
+    menu:load()
+    game:load()
 
-    view:load()
+    switchTo(game)
 end
 
 function love.draw()
     love.graphics.push()
-    love.graphics.scale(4,4)
-    view:draw(model)
+    state:draw()
     love.graphics.pop()
 end
 
--- Key handlers
-local keys = {
-    q = function()
-        love.event.quit()
-    end,
-
-    h = function()
-        model:movePlayer(Pos.moveWest)
-    end,
-
-    j = function()
-        model:movePlayer(Pos.moveSouth)
-    end,
-
-    k = function()
-        model:movePlayer(Pos.moveNorth)
-    end,
-
-    l = function()
-        model:movePlayer(Pos.moveEast)
-    end,
-}
-
-function love.keypressed(k)
-    handler = keys[k]
-    if handler then
-        handler()
+function love.keypressed(key,scan,isrepeat)
+    local newState = state:keypressed(key,scan,isrepeat)
+    if newState then
+        switchTo(newState)
     end
 end
 
 function love.update()
     step{}
+    state:update()
 end

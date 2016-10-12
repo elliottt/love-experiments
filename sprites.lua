@@ -1,39 +1,55 @@
 
-Sprite = {}
-Sprite.__index = Sprite
+Sprite = {
+    quad  = nil,
+    image = nil,
+}
 
-function Sprite.new(image, x, y, w, h)
-    local self = setmetatable({}, Sprite)
-    self.quad  = love.graphics.newQuad(x, y, w, h, image:getDimensions())
-    self.image = image
-    return self
+function Sprite:new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function Sprite.create(image, x, y, w, h)
+    local sprite = Sprite:new()
+    sprite.quad  = love.graphics.newQuad(x, y, w, h, image:getDimensions())
+    sprite.image = image
+    return sprite
 end
 
 function Sprite.draw(self, x, y)
     love.graphics.draw(self.image, self.quad, x, y)
 end
 
-SpriteSheet = {}
-SpriteSheet.__index = SpriteSheet
 
-function SpriteSheet.new(path, off_x, off_y, width, height, border_x, border_y)
-    local self    = setmetatable({}, SpriteSheet)
+SpriteSheet = {
+    off_x = 0,
+    off_y = 0,
+    width = 0,
+    height = 0,
+    border_x = 0,
+    border_y = 0,
+    image = nil,
+}
 
-    self.image    = love.graphics.newImage(path)
-    self.image:setFilter('nearest', 'nearest')
+function SpriteSheet:new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
 
-    self.loaded   = {}
-    self.width    = width
-    self.height   = height
-    self.off_x    = off_x
-    self.off_y    = off_y
-    self.border_x = border_x
-    self.border_y = border_y
-    return self
+function SpriteSheet.create(path, opts)
+    local sheet = SpriteSheet:new(opts)
+    sheet.image = love.graphics.newImage(path)
+    sheet.image:setFilter('nearest', 'nearest')
+    sheet.loaded = {}
+    return sheet
 end
 
 -- Load/cache sprites from the sprite sheet.
-function SpriteSheet.get(self,x,y)
+function SpriteSheet:get(x,y)
     local row = self.loaded[x]
     local img = nil
     if row then
@@ -46,7 +62,7 @@ function SpriteSheet.get(self,x,y)
         self.loaded[x] = row
     end
 
-    img = Sprite.new(self.image,
+    img = Sprite.create(self.image,
             self.off_x + x * (self.width  + self.border_x),
             self.off_y + y * (self.height + self.border_y),
             self.width, self.height)

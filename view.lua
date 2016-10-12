@@ -2,22 +2,40 @@
 require 'sprites'
 
 View = {}
-View.__index = View
 
-function View.new(model)
-    local self = setmetatable({}, View)
-
-    self.cellWidth  = 16
-    self.cellHeight = 16
-
-    return self
+function View:new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
 end
 
+function View.create()
+    return View:new{
+        charSheet = nil,
+        playerSprite = nil,
+        cellWidth = 16,
+        cellHeight = 16,
+    }
+end
 
-function View.load(self)
+function View:load()
 
-    self.charSheet = SpriteSheet.new('sprites/roguelikeChar_transparent.png',
-            0, 0, 16, 16, 1, 1)
+    self.charSheet =
+        SpriteSheet.create('sprites/roguelikeChar_transparent.png', {
+            width = self.cellWidth,
+            height = self.cellHeight,
+            border_x = 1,
+            border_y = 1,
+        })
+
+    self.dungeonSheet =
+        SpriteSheet.create('sprites/roguelikeDungeon_transparent.png', {
+            width = self.cellWidth,
+            height = self.cellHeight,
+            border_x = 1,
+            border_y = 1,
+        })
 
     self.playerSprite = Animation.new{
         Frame.new(self.charSheet:get(0,0), 0.1),
@@ -27,9 +45,25 @@ function View.load(self)
 end
 
 
-function View.draw(self, model)
+function View:draw(model)
+
+    love.graphics.scale(4,4)
 
     self.playerSprite:draw(model.player.pos.x * self.cellWidth,
             model.player.pos.y * self.cellHeight)
+
+    for row,elems in model:map():rows() do
+        for col,cell in elems do
+            love.graphics.push()
+            love.graphics.translate(self.cellWidth * col, self.cellHeight * row)
+            self:drawCell(cell)
+            love.graphics.pop()
+        end
+    end
+end
+
+function View:drawCell(cell)
+
+    love.graphics.print('x', 0, 0)
 
 end
