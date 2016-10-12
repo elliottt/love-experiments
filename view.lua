@@ -19,7 +19,10 @@ function View.load(self)
     self.charSheet = SpriteSheet.new('sprites/roguelikeChar_transparent.png',
             0, 0, 16, 16, 1, 1)
 
-    self.playerSprite = self.charSheet:get(0,0)
+    self.playerSprite = Animation.new{
+        Frame.new(self.charSheet:get(0,0), 0.1),
+        Frame.new(self.charSheet:get(1,0), 0.5),
+    }
 
 end
 
