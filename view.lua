@@ -31,11 +31,18 @@ function View:load()
 
     self.dungeonSheet =
         SpriteSheet.create('sprites/roguelikeDungeon_transparent.png', {
+            off_x = 1,
+            off_y = 1,
             width = self.cellWidth,
             height = self.cellHeight,
             border_x = 1,
             border_y = 1,
         })
+
+    self.tiles = {}
+    self.tiles[Floor.kind] = self.dungeonSheet:get(16,14)
+    self.tiles[Wall.kind]  = self.dungeonSheet:get(16,10)
+    self.tiles[Door.kind]  = self.dungeonSheet:get(24,1)
 
     self.playerSprite = Animation.new{
         Frame.new(self.charSheet:get(0,0), 0.1),
@@ -49,9 +56,6 @@ function View:draw(model)
 
     love.graphics.scale(4,4)
 
-    self.playerSprite:draw(model.player.pos.x * self.cellWidth,
-            model.player.pos.y * self.cellHeight)
-
     for row,elems in model:map():rows() do
         for col,cell in elems do
             love.graphics.push()
@@ -60,10 +64,14 @@ function View:draw(model)
             love.graphics.pop()
         end
     end
+
+    self.playerSprite:draw(model.player.pos.x * self.cellWidth,
+            model.player.pos.y * self.cellHeight)
+
 end
 
 function View:drawCell(cell)
-
-    love.graphics.print('x', 0, 0)
-
+    if cell then
+        self.tiles[cell.kind]:draw(0,0)
+    end
 end

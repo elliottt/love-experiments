@@ -64,12 +64,13 @@ function Model.create(opts)
         player = Character:new{
             hp     = 15,
             max_hp = 15,
-            pos    = Pos:new(),
+            pos    = Pos:new{x = 1, y = 1 }
         },
         mapWidth = opts.mapWidth or 128,
         mapHeight = opts.mapHeight or 128,
         mobs = {},
         levels = {},
+        current = nil,
         seed = opts.seed or genSeed(),
     }
     model:enterLevel(1)
@@ -77,26 +78,27 @@ function Model.create(opts)
 end
 
 function Model:map()
-    return self.levels[self.level]
+    return self.current
 end
 
 -- Generate a fresh level, or restore an already existing level.
 function Model:enterLevel(depth)
     self.level = depth
 
-    if self.levels[depth] then
-        return
-    else
+    if self.levels[depth] == nil then
         self.levels[depth] = Map.create(self.mapWidth, self.mapHeight)
     end
+
+    self.current = self.levels[depth]
 end
 
 -- Apply a function to the player's position, likely one of the Pos:move*
 -- functions.
 function Model:movePlayer(by)
     local newPos = by(self.player.pos)
+    local cell   = self.current:get(newPos.x, newPos.y)
 
-    -- XXX: interpret the movement
-
-    self.player.pos = newPos
+    if cell and cell:passable() then
+        self.player.pos = newPos
+    end
 end

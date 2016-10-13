@@ -8,6 +8,7 @@ Cell = {
     prop   = nil,
     entity = nil,
     item   = nil,
+    kind   = nil,
 }
 
 function Cell:new(o)
@@ -17,11 +18,19 @@ function Cell:new(o)
     return o
 end
 
-Wall = Cell:new()
+function Cell:passable()
+    return true
+end
 
-Floor = Cell:new()
+Wall = Cell:new{ kind = {} }
 
-Door = Cell:new()
+function Wall:passable()
+    return false
+end
+
+Floor = Cell:new{ kind = {} }
+
+Door = Cell:new{ kind = {} }
 
 
 
@@ -42,11 +51,16 @@ function Map.create(width,height)
     local map = Map:new{
         width = width,
         height = height,
+        size = width * height,
         cells = {},
     }
 
-    for i=1,width*height do
-        table.insert(map.cells, Cell:new())
+    for i=1,map.size do
+        if i <= width or i % width == 0 or (i-1) % width == 0 or i > width * (height - 1) then
+            table.insert(map.cells, Wall:new())
+        else
+            table.insert(map.cells, Floor:new())
+        end
     end
 
     return map
@@ -69,13 +83,13 @@ function Map:rows()
             return nil
         else
             return row, function()
-                i   = i   + 1
                 col = col + 1
 
                 if col >= self.width then
                     col = -1
                     return nil
                 else
+                    i = i + 1
                     return col, self.cells[i]
                 end
             end
