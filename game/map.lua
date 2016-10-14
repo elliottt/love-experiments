@@ -1,4 +1,5 @@
 
+require 'game.pos'
 require 'game.entity'
 require 'game.prop'
 require 'game.item'
@@ -20,6 +21,18 @@ end
 
 function Cell:passable()
     return true
+end
+
+function Cell:setEntity(new)
+    local old = self.entity
+    self.entity = new
+    return old
+end
+
+function Cell:setProp(new)
+    local old = self.prop
+    self.prop = new
+    return old
 end
 
 Wall = Cell:new{ kind = {} }
@@ -63,12 +76,26 @@ function Map.create(width,height)
         end
     end
 
+    map:get(4,5):setProp(Chest.create())
+
     return map
 end
 
--- Index into the map with 0-based row/col pairs.
-function Map:get(row,col)
-    return self.cells[row * self.width + col + 1]
+-- Index into the map with 0-based coordinates.
+--
+-- If the second argument is nil, it's assumed that the first argument is a Pos.
+function Map:get(x,y)
+    if y == nil then
+        return self.cells[x.y * self.width + x.x + 1]
+    else
+        return self.cells[y * self.width + x + 1]
+    end
+end
+
+-- True when the position is within the bounds of the map
+function Map:inBounds(pos)
+    return pos.x >= 0 and pos.x < self.width
+        and pos.y >= 0 and pos.y < self.height
 end
 
 -- An iterator for each cell of the map.

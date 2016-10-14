@@ -1,3 +1,3 @@
 #!/bin/bash
 
-love . --console
+love --console .

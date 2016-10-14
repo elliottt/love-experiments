@@ -89,6 +89,10 @@ PlayingState = GameState:new{
         l = function(self)
             self.model:movePlayer(Pos.moveEast)
         end,
+
+        space = function(self)
+            self.model:interact()
+        end,
     }
 }
 
