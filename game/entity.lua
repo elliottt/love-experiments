@@ -18,4 +18,5 @@ function Entity:new(o)
     return o
 end
 
-Player = Entity:new{ kind = {} }
+Player  = Entity:new{ kind = {} }
+Monster = Entity:new{ kind = {} }

@@ -73,6 +73,13 @@ function View:load()
                 Frame.new(self.charSheet:get(1,0), 0.5),
             },
         },
+
+        [Monster.kind] = {
+            Animation.new{
+                Frame.new(self.charSheet:get(0,3), 0.1),
+                Frame.new(self.charSheet:get(1,3), 0.5),
+            },
+        },
     }
 
     self.special = {
@@ -81,6 +88,30 @@ function View:load()
                 tiles[1]:draw(0,0)
             else
                 tiles[2]:draw(0,0)
+            end
+        end,
+
+        [Player.kind] = function(player,tiles)
+            if player.hp <= 0 then
+                love.graphics.push('transform')
+                love.graphics.rotate(math.pi / 2)
+                love.graphics.translate(self.cellWidth, 0)
+                tiles[1]:draw(0,0)
+                love.graphics.pop()
+            else
+                tiles[1]:draw(0,0)
+            end
+        end,
+
+        [Monster.kind] = function(player,tiles)
+            if player.hp <= 0 then
+                love.graphics.push('transform')
+                love.graphics.rotate(math.pi / 2)
+                love.graphics.translate(0,-self.cellWidth)
+                tiles[1]:draw(0,0)
+                love.graphics.pop()
+            else
+                tiles[1]:draw(0,0)
             end
         end,
     }

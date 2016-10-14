@@ -41,6 +41,20 @@ function Model:map()
     return self.current
 end
 
+-- Spawn a mob, dependent on current level.
+function Model:spawn(pos)
+    local cell = self.current:get(pos)
+    if cell.entity then
+        return nil
+    end
+
+    local mob = Monster:new{ pos = pos, hp = 1 }
+    table.insert(self.mobs, mob)
+    cell:setEntity(mob)
+
+    return mob
+end
+
 -- Generate a fresh level, or restore an already existing level.
 function Model:enterLevel(depth)
     self.level = depth
@@ -53,24 +67,27 @@ function Model:enterLevel(depth)
 
     -- place the player
     self.current:get(self.player.pos):setEntity(self.player)
+    self:spawn(Pos:new{ x = 3, y = 3 })
 end
 
+-- Returns either nil in the case that the move didn't trigger any action, or an
+-- entity if it is to trigger an attack.
 function Model:moveEntity(entity, newPos)
     -- ignore invalid new positions
     if not self.current:inBounds(newPos) then
-        return false
+        return nil
     end
 
     local cell = self.current:get(newPos)
 
     -- ignore movement into a wall
     if not cell:passable() then
-        return false
+        return nil
     end
 
     -- ignore occupied cells
     if cell.entity ~= nil then
-        return false
+        return cell.entity
     end
 
     local oldCell  = self.current:get(entity.pos)
@@ -78,7 +95,7 @@ function Model:moveEntity(entity, newPos)
     cell.entity    = entity
     entity.pos     = newPos
 
-    return true
+    return nil
 end
 
 -- Apply a function to the player's position, likely one of the Pos:move*
@@ -87,9 +104,13 @@ function Model:movePlayer(by)
     local newPos = by(self.player.pos)
 
     -- if the movement is succeessful, return
-    if self:moveEntity(self.player, newPos) then
+    local target = self:moveEntity(self.player, newPos)
+    if target == nil then
         return
     end
+
+    -- otherwise, there is an attack to perform
+    target.hp = target.hp - 1
 
 end
 
