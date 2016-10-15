@@ -8,7 +8,7 @@ require 'game.item'
 Cell = {
     prop   = nil,
     entity = nil,
-    item   = nil,
+    items  = nil,
     kind   = nil,
 }
 
@@ -16,6 +16,7 @@ function Cell:new(o)
     o = o or {}
     setmetatable(o, self)
     self.__index = self
+    o.items = {}
     return o
 end
 
@@ -33,6 +34,19 @@ function Cell:setProp(new)
     local old = self.prop
     self.prop = new
     return old
+end
+
+function Cell:addItem(item)
+    table.insert(self.items, item)
+end
+
+function Cell:removeItem(item)
+    for i,e in ipairs(self.items) do
+        if e == item then
+            table.remove(self.items, i)
+            return
+        end
+    end
 end
 
 Wall = Cell:new{ kind = {} }

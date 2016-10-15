@@ -8,7 +8,7 @@ function notify(name, data)
     if reg then
         for i,handler in ipairs(reg) do
             if false == handler(data, name, handler) then
-                reg[i] = nil
+                table.remove(reg, i)
             end
         end
     end
@@ -27,7 +27,7 @@ function ignore(name, handler)
     if reg then
         for i,h in ipairs(reg) do
             if h == handler then
-                reg[i] = nil
+                table.remove(reg, i)
                 break
             end
         end

@@ -80,6 +80,10 @@ function View:load()
                 Frame.new(self.charSheet:get(1,3), 0.5),
             },
         },
+
+        [Corpse.kind] = {
+            self.dungeonSheet:get(3,2),
+        }
     }
 
     self.special = {
@@ -88,30 +92,6 @@ function View:load()
                 tiles[1]:draw(0,0)
             else
                 tiles[2]:draw(0,0)
-            end
-        end,
-
-        [Player.kind] = function(player,tiles)
-            if player.hp <= 0 then
-                love.graphics.push('transform')
-                love.graphics.rotate(math.pi / 2)
-                love.graphics.translate(self.cellWidth, 0)
-                tiles[1]:draw(0,0)
-                love.graphics.pop()
-            else
-                tiles[1]:draw(0,0)
-            end
-        end,
-
-        [Monster.kind] = function(player,tiles)
-            if player.hp <= 0 then
-                love.graphics.push('transform')
-                love.graphics.rotate(math.pi / 2)
-                love.graphics.translate(0,-self.cellWidth)
-                tiles[1]:draw(0,0)
-                love.graphics.pop()
-            else
-                tiles[1]:draw(0,0)
             end
         end,
     }
@@ -157,8 +137,13 @@ function View:drawCell(cell)
         self:drawTile(cell.prop)
     end
 
+    -- always just draw the top item, if it exists
+    if cell.items[1] then
+        self:drawTile(cell.items[1])
+    end
+
     if cell.entity then
-        self:drawTile(cell.entity)
+        self:drawEntity(cell.entity)
     end
 end
 
@@ -170,4 +155,8 @@ function View:drawTile(thing)
     elseif tiles ~= nil then
         tiles[1]:draw(0,0)
     end
+end
+
+function View:drawEntity(entity)
+    self:drawTile(entity)
 end

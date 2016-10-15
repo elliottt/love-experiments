@@ -113,8 +113,34 @@ function Model:movePlayer(by)
     target.hp = target.hp - 1
     if target.hp == 0 then
         notify('dead', cell)
+        self:kill(cell)
     end
 
+end
+
+-- Make this entity within this cell dead
+function Model:kill(cell)
+    local entity = cell.entity
+    if nil == entity then
+        return
+    end
+
+    -- remove the entity from the cell and the mob list
+    cell.entity = nil
+    self:removeMob(entity)
+
+    -- replace the entity with a corpse, and add the corpse to the cell's item
+    -- list
+    cell:addItem(Corpse:new())
+end
+
+function Model:removeMob(entity)
+    for i,mob in ipairs(self.mobs) do
+        if mob == entity then
+            table.remove(self.mobs, i)
+            return
+        end
+    end
 end
 
 -- Interact the player with something

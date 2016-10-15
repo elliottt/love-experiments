@@ -1,5 +1,5 @@
 
-Item = {}
+Item = { kind = {} }
 
 function Item:new(o)
     o = o or {}
@@ -7,3 +7,5 @@ function Item:new(o)
     self.__index = self
     return o
 end
+
+Corpse = Item:new{ kind = {} }
