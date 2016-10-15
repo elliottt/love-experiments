@@ -119,9 +119,22 @@ function View:load()
 end
 
 
+function View:center(model, scale)
+    local div = 2 * scale
+    love.graphics.scale(scale,scale)
+    love.graphics.translate(
+            love.graphics.getWidth()  / div
+            - model.player.pos.x * self.cellWidth
+            - self.cellWidth / 2,
+            love.graphics.getHeight() / div
+            - model.player.pos.y * self.cellHeight
+            - self.cellHeight / 2)
+end
+
+
 function View:draw(model)
 
-    love.graphics.scale(4,4)
+    self:center(model, 4)
 
     -- draw the base tiles
     for row,elems in model:map():rows() do
@@ -156,7 +169,5 @@ function View:drawTile(thing)
         special(thing,tiles)
     elseif tiles ~= nil then
         tiles[1]:draw(0,0)
-    else
-        love.graphics.print(string.format('sk %s', thing.kind == Player.kind), 0, 0)
     end
 end

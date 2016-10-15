@@ -19,11 +19,15 @@ Chest = Prop:new{ kind = {} }
 function Chest.create()
     return Chest:new{
         contents = {},
-        locked = false,
+        locked = true,
         open = false,
     }
 end
 
-function Chest:interact(player)
+function Chest:interact(player, cell)
+    if self.locked then
+        notify('unlock', cell)
+    end
+
     self.open = not self.open
 end

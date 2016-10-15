@@ -87,7 +87,7 @@ function Model:moveEntity(entity, newPos)
 
     -- ignore occupied cells
     if cell.entity ~= nil then
-        return cell.entity
+        return cell, cell.entity
     end
 
     local oldCell  = self.current:get(entity.pos)
@@ -103,14 +103,17 @@ end
 function Model:movePlayer(by)
     local newPos = by(self.player.pos)
 
-    -- if the movement is succeessful, return
-    local target = self:moveEntity(self.player, newPos)
-    if target == nil then
+    -- if the movement is succeessful, no cell is returned
+    local cell, target = self:moveEntity(self.player, newPos)
+    if cell == nil then
         return
     end
 
     -- otherwise, there is an attack to perform
     target.hp = target.hp - 1
+    if target.hp == 0 then
+        notify('dead', cell)
+    end
 
 end
 

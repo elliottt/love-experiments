@@ -1,4 +1,5 @@
 
+require 'event'
 require 'game.pos'
 
 Entity = {
