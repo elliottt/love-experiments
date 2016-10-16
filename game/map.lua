@@ -74,36 +74,51 @@ function Map:new(o)
     return o
 end
 
-function Map.create(width,height)
+function Map.defaults(opts)
+    opts                 = opts or {}
+    opts.width           = opts.width or 128
+    opts.height          = opts.height or 128
+    opts.depth           = opts.depth or 1
+    opts.startRoomWidth  = opts.startRoomWidth or 10
+    opts.startRoomHeight = opts.startRoomHeight or 10
+    return opts
+end
+
+function Map.create(opts)
+    opts = Map.defaults(opts)
     local map = Map:new{
-        width = width,
-        height = height,
-        size = width * height,
+        width = opts.width,
+        height = opts.height,
+        size = opts.width * opts.height,
         cells = {},
     }
 
     for i=1,map.size do
-        if i <= width or i % width == 0 or (i-1) % width == 0 or i > width * (height - 1) then
-            table.insert(map.cells, Wall:new())
-        else
-            table.insert(map.cells, Floor:new())
-        end
+        table.insert(map.cells, Wall:new())
     end
 
-    map:get(4,5):setProp(Chest.create())
+    map:gen(opts)
 
     return map
+end
+
+function Map:ix(x,y)
+    if y == nil then
+        return x.y * self.width + x.x + 1
+    else
+        return y * self.width + x + 1
+    end
 end
 
 -- Index into the map with 0-based coordinates.
 --
 -- If the second argument is nil, it's assumed that the first argument is a Pos.
 function Map:get(x,y)
-    if y == nil then
-        return self.cells[x.y * self.width + x.x + 1]
-    else
-        return self.cells[y * self.width + x + 1]
-    end
+    return self.cells[self:ix(x,y)]
+end
+
+function Map:set(x,y,c)
+    self.cells[self:ix(x,y)] = c
 end
 
 -- True when the position is within the bounds of the map
@@ -134,6 +149,43 @@ function Map:rows()
                     return col, self.cells[i]
                 end
             end
+        end
+    end
+end
+
+
+-- Map generator core
+function Map:gen(opts)
+    local room = RectRoom.create(0,0,
+            love.math.random(6,opts.startRoomWidth),
+            love.math.random(6,opts.startRoomHeight))
+    room:apply(self)
+end
+
+Room = { kind = {} }
+
+function Room:new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+RectRoom = Room:new{ kind = {} }
+
+function RectRoom.create(x, y, w, h)
+    return RectRoom:new{
+        x = x,
+        y = y,
+        w = w,
+        h = h,
+    }
+end
+
+function RectRoom:apply(map)
+    for j=self.y+1,self.y + self.h-2 do
+        for i=self.x+1,self.x + self.w-2 do
+            map:set(i,j,Floor:new())
         end
     end
 end

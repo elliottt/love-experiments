@@ -82,7 +82,7 @@ function View:load()
         },
 
         [Corpse.kind] = {
-            self.dungeonSheet:get(3,2),
+            self.dungeonSheet:get(2,2),
         }
     }
 

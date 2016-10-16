@@ -32,6 +32,8 @@ function Model.create(opts)
         seed = opts.seed or genSeed(),
     }
 
+    love.math.setRandomSeed(model.seed)
+
     model:enterLevel(1)
 
     return model
@@ -60,7 +62,11 @@ function Model:enterLevel(depth)
     self.level = depth
 
     if self.levels[depth] == nil then
-        self.levels[depth] = Map.create(self.mapWidth, self.mapHeight)
+        self.levels[depth] = Map.create{
+            width = self.mapWidth,
+            height = self.mapHeight,
+            depth = depth,
+        }
     end
 
     self.current = self.levels[depth]
