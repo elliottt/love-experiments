@@ -3,6 +3,7 @@ require 'game.pos'
 require 'game.entity'
 require 'game.prop'
 require 'game.item'
+require 'game.bsp'
 
 
 Cell = {
@@ -80,6 +81,8 @@ function Map.defaults(opts)
     opts.depth           = opts.depth or 1
     opts.startRoomWidth  = opts.startRoomWidth or 10
     opts.startRoomHeight = opts.startRoomHeight or 10
+    opts.placeTries      = 10
+
     return opts
 end
 
@@ -91,6 +94,7 @@ function Map.create(opts)
         size = opts.width * opts.height,
         cells = {},
         entrance = nil,
+        depth = opts.depth,
     }
 
     for i=1,map.size do
@@ -160,10 +164,16 @@ end
 
 -- Map generator core
 function Map:gen(opts)
+    local region = Region.create(0,0,self.width,self.height)
+
     local entrance = RectRoom.create(0,0,
             love.math.random(6,opts.startRoomWidth),
             love.math.random(6,opts.startRoomHeight))
 
+    -- something has gone horribly wrong if we can't place the entrance
+    if not self:placeRoom(opts, region, entrance) then
+        error('failed to place the entrance')
+    end
 
     entrance:apply(self)
 
@@ -171,6 +181,20 @@ function Map:gen(opts)
     self.entrance = entrance:pick()
     self:get(self.entrance):setProp(UpStairs:new())
 end
+
+function Map:placeRoom(opts, region, room)
+    -- if a sub-region exists, the room can be placed
+    local sub = region:contains(room.w, room.h)
+    if sub then
+        local x,y = sub:pick()
+        room.x = x
+        room.y = y
+        return true
+    else
+        return false
+    end
+end
+
 
 Room = { kind = {} }
 
@@ -205,3 +229,8 @@ function RectRoom:pick()
     local y = love.math.random(self.y+1, self.y + self.h - 2)
     return Pos:new{ x=x, y=y }
 end
+
+
+-- bsp regions
+
+
