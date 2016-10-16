@@ -70,9 +70,11 @@ function Model:enterLevel(depth)
     end
 
     self.current = self.levels[depth]
+    local map = self.current
 
-    -- place the player
-    self.current:get(self.player.pos):setEntity(self.player)
+    -- place the player at the entrance to the level
+    self.player.pos = map.entrance
+    map:get(map.entrance):setEntity(self.player)
     self:spawn(Pos:new{ x = 3, y = 3 })
 end
 

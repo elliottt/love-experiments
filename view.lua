@@ -62,6 +62,11 @@ function View:load()
             self.dungeonSheet:get(24,1),
         },
 
+        [UpStairs.kind] = {
+            self.dungeonSheet:get(16,14),
+            self.roguelikeSheet:get(35,18),
+        },
+
         [Chest.kind] = {
             self.roguelikeSheet:get(38,11),
             self.roguelikeSheet:get(38,10),
@@ -153,7 +158,9 @@ function View:drawTile(thing)
     if special ~= nil then
         special(thing,tiles)
     elseif tiles ~= nil then
-        tiles[1]:draw(0,0)
+        for i,tile in ipairs(tiles) do
+            tile:draw(0,0)
+        end
     end
 end
 

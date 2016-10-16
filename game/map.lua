@@ -60,7 +60,6 @@ Floor = Cell:new{ kind = {} }
 Door = Cell:new{ kind = {} }
 
 
-
 Map = {
     width = 0,
     height = 0,
@@ -91,6 +90,7 @@ function Map.create(opts)
         height = opts.height,
         size = opts.width * opts.height,
         cells = {},
+        entrance = nil,
     }
 
     for i=1,map.size do
@@ -118,7 +118,11 @@ function Map:get(x,y)
 end
 
 function Map:set(x,y,c)
-    self.cells[self:ix(x,y)] = c
+    if c == nil then
+        self.cells[self:ix(x)] = y
+    else
+        self.cells[self:ix(x,y)] = c
+    end
 end
 
 -- True when the position is within the bounds of the map
@@ -156,10 +160,16 @@ end
 
 -- Map generator core
 function Map:gen(opts)
-    local room = RectRoom.create(0,0,
+    local entrance = RectRoom.create(0,0,
             love.math.random(6,opts.startRoomWidth),
             love.math.random(6,opts.startRoomHeight))
-    room:apply(self)
+
+
+    entrance:apply(self)
+
+    -- pick a point in the room to be an entrance
+    self.entrance = entrance:pick()
+    self:get(self.entrance):setProp(UpStairs:new())
 end
 
 Room = { kind = {} }
@@ -188,4 +198,10 @@ function RectRoom:apply(map)
             map:set(i,j,Floor:new())
         end
     end
+end
+
+function RectRoom:pick()
+    local x = love.math.random(self.x+1, self.x + self.w - 2)
+    local y = love.math.random(self.y+1, self.y + self.h - 2)
+    return Pos:new{ x=x, y=y }
 end

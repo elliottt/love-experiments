@@ -31,3 +31,10 @@ function Chest:interact(player, cell)
 
     self.open = not self.open
 end
+
+
+UpStairs = Prop:new{ kind = {} }
+
+function UpStairs:interact(player, cell)
+    print('upstairs!')
+end
