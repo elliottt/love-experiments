@@ -26,6 +26,7 @@ end
 -- width relative to the current region.
 function Region:splitVert(w)
     return Node.create(
+        true,
         Region.create(self.x,         self.y,          w - 1, self.h),
         Region.create(self.x + w + 1, self.y, self.w - w - 1, self.h),
         self.w,
@@ -34,6 +35,7 @@ end
 
 function Region:splitHoriz(h)
     return Node.create(
+        false,
         Region.create(self.x, self.y,         self.w,          h - 1),
         Region.create(self.x, self.y + h + 1, self.w, self.h - h - 1),
         self.w,
@@ -65,8 +67,8 @@ function Node:__tostring()
             self.w, self.h, self.left:__tostring(), self.right:__tostring())
 end
 
-function Node.create(left,right,w,h)
-    return Node:new{ left=left, right=right, w=w, h=h }
+function Node.create(isVert,left,right,w,h)
+    return Node:new{ isVert=isVert, left=left, right=right, w=w, h=h }
 end
 
 -- Return either region that could contain the given box, or nil if neither

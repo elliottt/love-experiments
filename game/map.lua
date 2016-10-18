@@ -177,6 +177,7 @@ end
 -- Map generator core
 function Map:gen(opts)
     local bsp = self:divide(opts)
+    self:placeHallways(bsp)
 
     -- pick the first generated room as the entrance
     local entrance = self.rooms[1]
@@ -253,6 +254,44 @@ function Map:placeRoom(opts, region)
     table.insert(self.rooms, room)
 end
 
+function Map:placeHallways(bsp)
+    if bsp.kind == Node.kind then
+        if bsp.left.kind == Region.kind and bsp.right.kind == Region.kind then
+            if bsp.isVert then
+                -- if the cut is vertical, the hallway is horizontal
+                self:placeHorizHallway(bsp.left.room, bsp.right.room)
+            else
+                self:placeVertHallway(bsp.left.room, bsp.right.room)
+            end
+        else
+            self:placeHallways(bsp.left)
+            self:placeHallways(bsp.right)
+        end
+    else
+        return
+    end
+end
+
+-- INVARIANT: room1 is always above room2.
+function Map:placeVertHallway(room1, room2)
+    local l = math.max(room1.x, room2.x)
+    local r = math.min(room1.x+room1.w, room2.x+room2.w)
+    local x = choose(l,r)
+    local room = RectRoom.create(x, room1.y+room1.h, 1, room2.y-(room1.y+room1.h))
+    room:apply(self)
+    table.insert(self.rooms, room)
+end
+
+-- INVARIANT: room1 is always left of room2.
+function Map:placeHorizHallway(room1, room2)
+    local l = math.max(room1.y, room2.y)
+    local r = math.min(room1.y+room1.h, room2.y+room2.h)
+    local y = choose(l,r)
+    local room = RectRoom.create(room1.x+room1.w, y, room2.x-(room1.x+room1.w), 1)
+    room:apply(self)
+    table.insert(self.rooms, room)
+end
+
 
 Room = { kind = {} }
 
@@ -264,6 +303,10 @@ function Room:new(o)
 end
 
 RectRoom = Room:new{ kind = {} }
+
+function RectRoom:__tostring()
+    return string.format('<RectRoom %d %d %d %d>', self.x, self.y, self.w, self.h)
+end
 
 function RectRoom.create(x, y, w, h)
     return RectRoom:new{
