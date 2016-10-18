@@ -59,6 +59,7 @@ function View:load()
         },
 
         [Door.kind] = {
+            self.dungeonSheet:get(16,14),
             self.dungeonSheet:get(24,1),
         },
 

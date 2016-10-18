@@ -1,5 +1,5 @@
 
-Pos = { x = 0, y = 0 }
+Pos = { x = 0, y = 0, kind = {} }
 
 function Pos:new(o)
     o = o or {}

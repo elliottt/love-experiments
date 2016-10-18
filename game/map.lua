@@ -278,6 +278,10 @@ function Map:placeVertHallway(room1, room2)
     local r = math.min(room1.x+room1.w, room2.x+room2.w)
     local x = choose(l,r)
     local room = RectRoom.create(x, room1.y+room1.h, 1, room2.y-(room1.y+room1.h))
+    room:set(0, 0, Door:new())
+    if room.h > 1 then
+        room:set(0, room.h-1, Door:new())
+    end
     room:apply(self)
     table.insert(self.rooms, room)
 end
@@ -288,6 +292,10 @@ function Map:placeHorizHallway(room1, room2)
     local r = math.min(room1.y+room1.h, room2.y+room2.h)
     local y = choose(l,r)
     local room = RectRoom.create(room1.x+room1.w, y, room2.x-(room1.x+room1.w), 1)
+    room:set(0, 0, Door:new())
+    if room.w > 1 then
+        room:set(room.w-1, 0, Door:new())
+    end
     room:apply(self)
     table.insert(self.rooms, room)
 end
@@ -314,13 +322,28 @@ function RectRoom.create(x, y, w, h)
         y = y,
         w = w,
         h = h,
+        inits = {},
     }
 end
 
+function RectRoom:get(x,y)
+    return self.inits[y*self.w + x+1]
+end
+
+function RectRoom:set(x,y,c)
+    self.inits[y*self.w + x+1] = c
+end
+
 function RectRoom:apply(map)
-    for j=self.y,self.y + self.h-1 do
-        for i=self.x,self.x + self.w-1 do
-            map:set(i,j,Floor:new())
+    local init
+    for j=0,self.h-1 do
+        for i=0,self.w-1 do
+            init = self:get(i,j)
+            if init then
+                map:set(self.x+i, self.y+j, init)
+            else
+                map:set(self.x+i, self.y+j, Floor:new())
+            end
         end
     end
 end
