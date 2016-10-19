@@ -4,6 +4,7 @@ require 'game.entity'
 require 'game.prop'
 require 'game.item'
 require 'game.bsp'
+require 'game.grid'
 require 'rand'
 
 
@@ -62,18 +63,7 @@ Floor = Cell:new{ kind = {} }
 Door = Cell:new{ kind = {} }
 
 
-Map = {
-    width = 0,
-    height = 0,
-    cells = nil,
-}
-
-function Map:new(o)
-    o = o or {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
+Map = Grid:new{ kind = {} }
 
 function Map.defaults(opts)
     opts                 = opts or {}
@@ -100,77 +90,14 @@ end
 function Map.create(opts)
     opts = Map.defaults(opts)
     local map = Map:new{
-        width = opts.width,
-        height = opts.height,
-        size = opts.width * opts.height,
-        cells = {},
         entrance = nil,
         depth = opts.depth,
         rooms = {},
-    }
-
-    for i=1,map.size do
-        table.insert(map.cells, Wall:new())
-    end
+    }:init(opts.width, opts.height, function() return Wall:new() end)
 
     map:gen(opts)
 
     return map
-end
-
-function Map:ix(x,y)
-    if y == nil then
-        return x.y * self.width + x.x + 1
-    else
-        return y * self.width + x + 1
-    end
-end
-
--- Index into the map with 0-based coordinates.
---
--- If the second argument is nil, it's assumed that the first argument is a Pos.
-function Map:get(x,y)
-    return self.cells[self:ix(x,y)]
-end
-
-function Map:set(x,y,c)
-    if c == nil then
-        self.cells[self:ix(x)] = y
-    else
-        self.cells[self:ix(x,y)] = c
-    end
-end
-
--- True when the position is within the bounds of the map
-function Map:inBounds(pos)
-    return pos.x >= 0 and pos.x < self.width
-        and pos.y >= 0 and pos.y < self.height
-end
-
--- An iterator for each cell of the map.
-function Map:rows()
-    local i   =  0
-    local row = -1
-    local col = -1
-    return function()
-        row = row + 1
-
-        if row >= self.height then
-            return nil
-        else
-            return row, function()
-                col = col + 1
-
-                if col >= self.width then
-                    col = -1
-                    return nil
-                else
-                    i = i + 1
-                    return col, self.cells[i]
-                end
-            end
-        end
-    end
 end
 
 
@@ -191,7 +118,7 @@ end
 
 -- Generate a BSP tree for the map.
 function Map:divide(opts)
-    return self:subDivide(opts, 0, Region.create(1,1,self.width-2,self.height-2))
+    return self:subDivide(opts, 0, Region.create(1,1,self.w-2,self.h-2))
 end
 
 
@@ -301,51 +228,17 @@ function Map:placeHorizHallway(room1, room2)
 end
 
 
-Room = { kind = {} }
-
-function Room:new(o)
-    o = o or {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-RectRoom = Room:new{ kind = {} }
-
-function RectRoom:__tostring()
-    return string.format('<RectRoom %d %d %d %d>', self.x, self.y, self.w, self.h)
-end
+RectRoom = Grid:new{ kind = {} }
 
 function RectRoom.create(x, y, w, h)
     return RectRoom:new{
-        x = x,
-        y = y,
-        w = w,
-        h = h,
-        inits = {},
-    }
-end
-
-function RectRoom:get(x,y)
-    return self.inits[y*self.w + x+1]
-end
-
-function RectRoom:set(x,y,c)
-    self.inits[y*self.w + x+1] = c
+        x=x,
+        y=y
+    }:init(w,h,function() return Floor:new() end)
 end
 
 function RectRoom:apply(map)
-    local init
-    for j=0,self.h-1 do
-        for i=0,self.w-1 do
-            init = self:get(i,j)
-            if init then
-                map:set(self.x+i, self.y+j, init)
-            else
-                map:set(self.x+i, self.y+j, Floor:new())
-            end
-        end
-    end
+    self:blit{ dest=map }
 end
 
 function RectRoom:pick()
