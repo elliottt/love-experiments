@@ -19,7 +19,7 @@ function Region:__tostring()
 end
 
 function Region.create(x,y,w,h)
-    return Region:new{ x=x, y=y, w=w, h=h, full=false }
+    return Region:new{ x=x, y=y, w=w, h=h, full=false, room=nil }
 end
 
 -- Cut a region in half, vertically. The parameter supplied is expected to be a
@@ -68,7 +68,7 @@ function Node:__tostring()
 end
 
 function Node.create(isVert,left,right,w,h)
-    return Node:new{ isVert=isVert, left=left, right=right, w=w, h=h }
+    return Node:new{ isVert=isVert, left=left, right=right, w=w, h=h, room=nil }
 end
 
 -- Return either region that could contain the given box, or nil if neither

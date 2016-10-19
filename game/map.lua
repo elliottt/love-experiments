@@ -202,7 +202,7 @@ end
 -- INVARIANT: room1 is always above room2.
 function Map:placeVertHallway(room1, room2)
     local l = math.max(room1.x, room2.x)
-    local r = math.min(room1.x+room1.w, room2.x+room2.w)
+    local r = math.min(room1.x+room1.w, room2.x+room2.w) - 1
     local x = choose(l,r)
     local room = RectRoom.create(x, room1.y+room1.h, 1, room2.y-(room1.y+room1.h))
     room:set(0, 0, Door:new())
@@ -216,7 +216,7 @@ end
 -- INVARIANT: room1 is always left of room2.
 function Map:placeHorizHallway(room1, room2)
     local l = math.max(room1.y, room2.y)
-    local r = math.min(room1.y+room1.h, room2.y+room2.h)
+    local r = math.min(room1.y+room1.h, room2.y+room2.h) - 1
     local y = choose(l,r)
     local room = RectRoom.create(room1.x+room1.w, y, room2.x-(room1.x+room1.w), 1)
     room:set(0, 0, Door:new())
@@ -246,8 +246,3 @@ function RectRoom:pick()
     local y = choose(self.y, self.y + self.h - 1)
     return Pos:new{ x=x, y=y }
 end
-
-
--- bsp regions
-
-
