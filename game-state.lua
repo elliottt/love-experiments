@@ -29,6 +29,15 @@ end
 function GameState:draw()
 end
 
+function GameState:mousepressed()
+end
+
+function GameState:mousereleased()
+end
+
+function GameState:mousemoved()
+end
+
 function GameState:keypressed(key,scan,isrepeat)
     local handler = self.keys[key]
     if handler then
@@ -58,6 +67,7 @@ MenuState = GameState:new{
 
 function MenuState:init(game)
     self.game = game
+    self.dragging = false
 end
 
 function MenuState:draw()
@@ -101,6 +111,22 @@ function PlayingState:enter()
         mapWidth = 128,
         mapHeight = 128,
     }
+end
+
+function PlayingState:mousepressed(x,y,button)
+    if button == 1 then
+        self.dragging = true
+    end
+end
+
+function PlayingState:mousereleased()
+    self.dragging = false
+end
+
+function PlayingState:mousemoved(x,y,dx,dy)
+    if self.dragging then
+        self.view:moveBy(dx,dy)
+    end
 end
 
 function PlayingState:init(menu)

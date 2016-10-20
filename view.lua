@@ -16,6 +16,8 @@ function View.create()
         playerSprite = nil,
         cellWidth = 16,
         cellHeight = 16,
+        offx = 0,
+        offy = 0,
     }
 end
 
@@ -60,7 +62,7 @@ function View:load()
 
         [Door.kind] = {
             self.dungeonSheet:get(16,14),
-            self.dungeonSheet:get(24,1),
+            self.roguelikeSheet:get(35,1),
         },
 
         [UpStairs.kind] = {
@@ -109,12 +111,20 @@ function View:center(model, scale)
     local div = 2 * scale
     love.graphics.scale(scale,scale)
     love.graphics.translate(
+            self.offx +
             love.graphics.getWidth()  / div
             - model.player.pos.x * self.cellWidth
             - self.cellWidth / 2,
+            self.offy +
             love.graphics.getHeight() / div
             - model.player.pos.y * self.cellHeight
             - self.cellHeight / 2)
+end
+
+
+function View:moveBy(dx,dy)
+    self.offx = self.offx + dx
+    self.offy = self.offy + dy
 end
 
 

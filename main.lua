@@ -29,6 +29,18 @@ function love.load()
     switchTo(game)
 end
 
+function love.mousepressed(x,y,b,t)
+    state:mousepressed(x,y,b,t)
+end
+
+function love.mousereleased(x,y,b,t)
+    state:mousereleased(x,y,b,t)
+end
+
+function love.mousemoved(x,y,dx,dy,t)
+    state:mousemoved(x,y,dx,dy,t)
+end
+
 function love.draw()
     love.graphics.push()
     state:draw()
