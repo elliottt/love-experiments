@@ -75,11 +75,17 @@ function Map.defaults(opts)
     opts.placeTries      = opts.placeTries or 10
 
     opts.maxIters        = opts.maxIters or 8
+    -- percent chance of early termination during room generation
+    opts.earlyExit       = opts.earlyExit or 10
+    opts.numEarlyExits   = opts.numEarlyExits or 6
 
     opts.minRegionWidth  = opts.minRegionWidth or 5
     opts.minRegionHeight = opts.minRegionHeight or 5
     opts.minSplitWidth   = opts.minRegionWidth * 2 + 1
     opts.minSplitHeight  = opts.minRegionHeight * 2 + 1
+
+    -- chance of filling an entire region with a room
+    opts.bigRoomChance   = opts.bigRoomChance or 10
 
     opts.maxRoomWidth    = opts.maxRoomWidth or 10
     opts.maxRoomHeight   = opts.maxRoomHeight or 10
@@ -132,7 +138,9 @@ function Map:subDivide(opts, iters, region)
                   opts.minRegionWidth,
                   region.w - opts.minRegionWidth - 1))
 
-    if iters >= opts.maxIters then
+    if iters >= opts.maxIters or
+        (opts.numEarlyExits > 0 and choose(1,100) < opts.earlyExit) then
+        opts.numEarlyExits = opts.numEarlyExits - 1
         self:placeRoom(opts, region)
         return region
     end
@@ -167,8 +175,15 @@ end
 
 -- Generate a room in this region.
 function Map:placeRoom(opts, region)
-    local w = choose(opts.minRegionWidth, math.min(region.w, opts.maxRoomWidth))
-    local h = choose(opts.minRegionHeight, math.min(region.h, opts.maxRoomHeight))
+    local w
+    local h
+    if choose(1,100) < opts.bigRoomChance then
+        w = region.w
+        h = region.h
+    else
+        w = choose(opts.minRegionWidth, math.min(region.w, opts.maxRoomWidth))
+        h = choose(opts.minRegionHeight, math.min(region.h, opts.maxRoomHeight))
+    end
     local room = RectRoom.create(
         choose(region.x, region.x + (region.w - w)),
         choose(region.y, region.y + (region.h - h)),
@@ -186,9 +201,9 @@ function Map:placeHallways(bsp)
         if bsp.left.kind == Region.kind and bsp.right.kind == Region.kind then
             if bsp.isVert then
                 -- if the cut is vertical, the hallway is horizontal
-                self:placeHorizHallway(bsp.left.room, bsp.right.room)
+                bsp.room = self:placeHorizHallway(bsp.left.room, bsp.right.room)
             else
-                self:placeVertHallway(bsp.left.room, bsp.right.room)
+                bsp.room = self:placeVertHallway(bsp.left.room, bsp.right.room)
             end
         else
             self:placeHallways(bsp.left)
@@ -211,6 +226,7 @@ function Map:placeVertHallway(room1, room2)
     end
     room:apply(self)
     table.insert(self.rooms, room)
+    return room
 end
 
 -- INVARIANT: room1 is always left of room2.
@@ -225,6 +241,7 @@ function Map:placeHorizHallway(room1, room2)
     end
     room:apply(self)
     table.insert(self.rooms, room)
+    return room
 end
 
 
