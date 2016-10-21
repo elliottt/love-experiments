@@ -108,8 +108,8 @@ PlayingState = GameState:new{
 
 function PlayingState:enter()
     self.model = Model.create{
-        mapWidth = 128,
-        mapHeight = 128,
+        mapWidth = 64,
+        mapHeight = 64,
     }
 end
 
