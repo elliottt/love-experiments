@@ -43,14 +43,14 @@ end
 -- width relative to the current region.
 function Region:splitVert(w)
     return Node.create(
-        true, self.x, self.y, self.w, self.h,
+        self.x, self.y, self.w, self.h, true,
         Region.create(self.x,         self.y,          w - 1, self.h),
         Region.create(self.x + w + 1, self.y, self.w - w - 1, self.h))
 end
 
 function Region:splitHoriz(h)
     return Node.create(
-        false, self.x, self.y, self.w, self.h,
+        self.x, self.y, self.w, self.h, false,
         Region.create(self.x, self.y,         self.w,          h - 1),
         Region.create(self.x, self.y + h + 1, self.w, self.h - h - 1))
 end
@@ -76,8 +76,8 @@ function Node:__tostring()
             self.w, self.h, self.left:__tostring(), self.right:__tostring())
 end
 
-function Node.create(isVert,x,y,w,h,left,right)
-    return Node:new{ isVert=isVert, left=left, right=right, w=w, h=h, room=nil }
+function Node.create(x,y,w,h,isVert,left,right)
+    return Node:new{ x=x, y=y, w=w, h=h, isVert=isVert, left=left, right=right }
 end
 
 function Node:lookup(x,y)

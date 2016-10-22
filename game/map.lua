@@ -110,7 +110,7 @@ end
 -- Map generator core
 function Map:gen(opts)
     local bsp = self:divide(opts)
-    self:placeHallways(bsp)
+    self:placeRooms(opts,bsp)
 
     -- pick the first generated room as the entrance
     local entrance = self.rooms[1]
@@ -124,12 +124,12 @@ end
 
 -- Generate a BSP tree for the map.
 function Map:divide(opts)
-    return self:subDivide(opts, 0, Region.create(1,1,self.w-2,self.h-2))
+    return subDivide(opts, 0, Region.create(1,1,self.w-2,self.h-2))
 end
 
 
 -- Sub-divide a region. If the region isn't big enough to sub-divide, return it.
-function Map:subDivide(opts, iters, region)
+function subDivide(opts, iters, region)
     local horiz = region:splitHoriz(choose(
                   opts.minRegionHeight,
                   region.h - opts.minRegionHeight - 1))
@@ -139,33 +139,31 @@ function Map:subDivide(opts, iters, region)
                   region.w - opts.minRegionWidth - 1))
 
     if iters >= opts.maxIters or
-        (opts.numEarlyExits > 0 and choose(1,100) < opts.earlyExit) then
+        (opts.numEarlyExits > 0 and choose(1,100) <= opts.earlyExit) then
         opts.numEarlyExits = opts.numEarlyExits - 1
-        self:placeRoom(opts, region)
         return region
     end
 
     if region.w < opts.minSplitWidth then
         if region.h < opts.minSplitHeight then
-            self:placeRoom(opts, region)
             return region
         else
-            horiz.left  = self:subDivide(opts, iters+1, horiz.left)
-            horiz.right = self:subDivide(opts, iters+1, horiz.right)
+            horiz.left  = subDivide(opts, iters+1, horiz.left)
+            horiz.right = subDivide(opts, iters+1, horiz.right)
             return horiz
         end
     elseif region.h < opts.minSplitHeight then
-        vert.left  = self:subDivide(opts, iters+1, vert.left)
-        vert.right = self:subDivide(opts, iters+1, vert.right)
+        vert.left  = subDivide(opts, iters+1, vert.left)
+        vert.right = subDivide(opts, iters+1, vert.right)
         return vert
     else
         if flipCoin() then
-            vert.left  = self:subDivide(opts, iters+1, vert.left)
-            vert.right = self:subDivide(opts, iters+1, vert.right)
+            vert.left  = subDivide(opts, iters+1, vert.left)
+            vert.right = subDivide(opts, iters+1, vert.right)
             return vert
         else
-            horiz.left  = self:subDivide(opts, iters+1, horiz.left)
-            horiz.right = self:subDivide(opts, iters+1, horiz.right)
+            horiz.left  = subDivide(opts, iters+1, horiz.left)
+            horiz.right = subDivide(opts, iters+1, horiz.right)
             return horiz
         end
     end
@@ -173,17 +171,39 @@ function Map:subDivide(opts, iters, region)
 end
 
 
+function Map:placeRooms(opts,node)
+    if node.kind == Region.kind then
+        self:placeRoom(opts, node)
+    else
+        self:placeRooms(opts, node.left)
+        self:placeRooms(opts, node.right)
+
+        if node.isVert then
+            self:placeHorizHallway(opts, node.left, node.right)
+        else
+            self:placeVertHallway(opts, node.left, node.right)
+        end
+    end
+end
+
+
+function Map:addRoom(room)
+    room:apply(self)
+    table.insert(self.rooms, room)
+end
+
 -- Generate a room in this region.
 function Map:placeRoom(opts, region)
     local w
     local h
-    if choose(1,100) < opts.bigRoomChance then
+    if choose(1,100) <= opts.bigRoomChance then
         w = region.w
         h = region.h
     else
         w = choose(opts.minRegionWidth, math.min(region.w, opts.maxRoomWidth))
         h = choose(opts.minRegionHeight, math.min(region.h, opts.maxRoomHeight))
     end
+
     local room = RectRoom.create(
         choose(region.x, region.x + (region.w - w)),
         choose(region.y, region.y + (region.h - h)),
@@ -192,56 +212,130 @@ function Map:placeRoom(opts, region)
 
     region.room = room
 
-    room:apply(self)
-    table.insert(self.rooms, room)
+    self:addRoom(room)
+
+    return room
 end
 
-function Map:placeHallways(bsp)
-    if bsp.kind == Node.kind then
-        if bsp.left.kind == Region.kind and bsp.right.kind == Region.kind then
-            if bsp.isVert then
-                -- if the cut is vertical, the hallway is horizontal
-                bsp.room = self:placeHorizHallway(bsp.left.room, bsp.right.room)
-            else
-                bsp.room = self:placeVertHallway(bsp.left.room, bsp.right.room)
-            end
-        else
-            self:placeHallways(bsp.left)
-            self:placeHallways(bsp.right)
+
+function vertExtent(bsp)
+    local l,h = bsp.y + bsp.h, bsp.y
+    bsp:rooms(function(room)
+        if room.y < l then
+            l = room.y
         end
-    else
-        return
-    end
+
+        local y = room.y + room.h - 1
+        if y > h then
+            h = y
+        end
+    end)
+
+    return l,h
 end
 
--- INVARIANT: room1 is always above room2.
-function Map:placeVertHallway(room1, room2)
-    local l = math.max(room1.x, room2.x)
-    local r = math.min(room1.x+room1.w, room2.x+room2.w) - 1
-    local x = choose(l,r)
-    local room = RectRoom.create(x, room1.y+room1.h, 1, room2.y-(room1.y+room1.h))
-    room:set(0, 0, Door:new())
-    if room.h > 1 then
-        room:set(0, room.h-1, Door:new())
+
+function Map:placeHorizHallway(opts, left, right)
+    -- discover the hollow extent of each region
+    local ll,lh = vertExtent(left)
+    local rl,rh = vertExtent(right)
+
+    -- find the region where the two extents overlap
+    local l = math.max(ll,rl)
+    local h = math.min(lh,rh)
+    local y = choose(l,h)
+
+    -- walk out along the x-axis from the split point in both directions, until
+    -- a room is encountered
+    local lx = right.x - 1
+    local rx = lx
+    while lx > left.x do
+        if self:get(lx,y).kind ~= Wall.kind then
+            lx = lx + 1
+            break
+        else
+            lx = lx - 1
+        end
     end
-    room:apply(self)
-    table.insert(self.rooms, room)
-    return room
+
+    local rb = right.x + right.w - 1
+    while rx < rb do
+        if self:get(rx,y).kind ~= Wall.kind then
+            rx = rx - 1
+            break
+        else
+            rx = rx + 1
+        end
+    end
+
+    -- draw a room for the hallway
+    local w    = rx - lx + 1
+    local room = RectRoom.create(lx,y,w,1)
+    room:set(0,0,Door:new())
+    if w >= 3 then
+        room:set(w-1,0,Door:new())
+    end
+    self:addRoom(room)
 end
 
--- INVARIANT: room1 is always left of room2.
-function Map:placeHorizHallway(room1, room2)
-    local l = math.max(room1.y, room2.y)
-    local r = math.min(room1.y+room1.h, room2.y+room2.h) - 1
-    local y = choose(l,r)
-    local room = RectRoom.create(room1.x+room1.w, y, room2.x-(room1.x+room1.w), 1)
-    room:set(0, 0, Door:new())
-    if room.w > 1 then
-        room:set(room.w-1, 0, Door:new())
+
+function horizExtent(bsp)
+    local l,h = bsp.x + bsp.w, bsp.x
+    bsp:rooms(function(room)
+        if room.x < l then
+            l = room.x
+        end
+
+        local x = room.x + room.w - 1
+        if x > h then
+            h = x
+        end
+    end)
+
+    return l,h
+end
+
+function Map:placeVertHallway(opts, top, bottom)
+    -- discover the hollow extent of each region
+    local ll,lh = horizExtent(top)
+    local rl,rh = horizExtent(bottom)
+
+    -- find the region where the two extents overlap
+    local l = math.max(ll,rl)
+    local h = math.min(lh,rh)
+    local x = choose(l,h)
+
+    -- walk out along the x-axis from the split point in both directions, until
+    -- a room is encountered
+    local ly = bottom.y - 1
+    local ry = ly
+    while ly > top.y do
+        if self:get(x,ly).kind ~= Wall.kind then
+            ly = ly + 1
+            break
+        else
+            ly = ly - 1
+        end
     end
-    room:apply(self)
-    table.insert(self.rooms, room)
-    return room
+
+    local rb = bottom.y + bottom.h - 1
+    while ry < rb do
+        if self:get(x,ry).kind ~= Wall.kind then
+            ry = ry - 1
+            break
+        else
+            ry = ry + 1
+        end
+    end
+
+    -- draw a room for the hallway
+    local h = ry - ly + 1
+    local room = RectRoom.create(x,ly,1,h)
+    room:set(0,0,Door:new())
+    if h >= 3 then
+        room:set(0,h-1,Door:new())
+    end
+    self:addRoom(room)
 end
 
 
