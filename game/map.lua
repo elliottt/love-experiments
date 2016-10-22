@@ -90,6 +90,9 @@ function Map.defaults(opts)
     opts.maxRoomWidth    = opts.maxRoomWidth or 10
     opts.maxRoomHeight   = opts.maxRoomHeight or 10
 
+    -- minimum hallway length for two doors
+    opts.hallwayDoorLen  = 4
+
     return opts
 end
 
@@ -243,7 +246,7 @@ function Map:placeHorizHallway(opts, left, right)
     -- find the region where the two extents overlap
     local l = math.max(ll,rl)
     local h = math.min(lh,rh)
-    local y = choose(l,h)
+    local y = choose(l+1,h-1)
 
     -- walk out along the x-axis from the split point in both directions, until
     -- a room is encountered
@@ -272,7 +275,7 @@ function Map:placeHorizHallway(opts, left, right)
     local w    = rx - lx + 1
     local room = RectRoom.create(lx,y,w,1)
     room:set(0,0,Door:new())
-    if w >= 3 then
+    if w >= opts.hallwayDoorLen then
         room:set(w-1,0,Door:new())
     end
     self:addRoom(room)
@@ -303,7 +306,7 @@ function Map:placeVertHallway(opts, top, bottom)
     -- find the region where the two extents overlap
     local l = math.max(ll,rl)
     local h = math.min(lh,rh)
-    local x = choose(l,h)
+    local x = choose(l+1,h-1)
 
     -- walk out along the x-axis from the split point in both directions, until
     -- a room is encountered
@@ -332,7 +335,7 @@ function Map:placeVertHallway(opts, top, bottom)
     local h = ry - ly + 1
     local room = RectRoom.create(x,ly,1,h)
     room:set(0,0,Door:new())
-    if h >= 3 then
+    if h >= opts.hallwayDoorLen then
         room:set(0,h-1,Door:new())
     end
     self:addRoom(room)
