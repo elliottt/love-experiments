@@ -23,6 +23,8 @@ end
 function love.load()
     initAnimation()
 
+    love.keyboard.setKeyRepeat(true)
+
     menu:load()
     game:load()
 

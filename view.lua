@@ -134,7 +134,7 @@ end
 
 function View:draw(model)
 
-    self:center(model, 1)
+    self:center(model, 4)
 
     -- draw the base tiles
     for row,elems in model:map():rows() do
