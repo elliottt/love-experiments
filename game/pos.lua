@@ -28,4 +28,11 @@ function Pos:moveWest()
     return Pos.new{ x = self.x - 1, y = self.y }
 end
 
-
+function Pos:neighbors()
+    return {
+        Pos:new{ x = self.x,   y = self.y-1},
+        Pos:new{ x = self.x+1, y = self.y  },
+        Pos:new{ x = self.x,   y = self.y+1},
+        Pos:new{ x = self.x-1, y = self.y  },
+    }
+end

@@ -85,23 +85,38 @@ PlayingState = GameState:new{
         end,
 
         h = function(self)
-            self.model:movePlayer(Pos.moveWest)
+            self.model:takeStep(function()
+                self.model:movePlayer(Pos.moveWest)
+            end)
         end,
 
         j = function(self)
-            self.model:movePlayer(Pos.moveSouth)
+            self.model:takeStep(function()
+                self.model:movePlayer(Pos.moveSouth)
+            end)
         end,
 
         k = function(self)
-            self.model:movePlayer(Pos.moveNorth)
+            self.model:takeStep(function()
+                self.model:movePlayer(Pos.moveNorth)
+            end)
         end,
 
         l = function(self)
-            self.model:movePlayer(Pos.moveEast)
+            self.model:takeStep(function()
+                self.model:movePlayer(Pos.moveEast)
+            end)
+        end,
+
+        ['.'] = function(self)
+            self.model:takeStep(function()
+            end)
         end,
 
         space = function(self)
-            self.model:interact()
+            self.model:takeStep(function()
+                self.model:interact()
+            end)
         end,
     }
 }

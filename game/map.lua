@@ -23,6 +23,10 @@ function Cell:new(o)
     return o
 end
 
+function Cell:vacant()
+    return self:passable() and self.entity == nil
+end
+
 function Cell:passable()
     return true
 end
@@ -361,10 +365,10 @@ end
 
 function Map:neighbors(x,y)
     return {
-        north = self:get(x,y-1),
-        east = self:get(x+1,y),
-        south = self:get(x,y+1),
-        west = self:get(x-1,y),
+        self:get(x,y-1),
+        self:get(x+1,y),
+        self:get(x,y+1),
+        self:get(x-1,y),
     }
 end
 

@@ -21,3 +21,40 @@ end
 
 Player  = Entity:new{ kind = {} }
 Monster = Entity:new{ kind = {} }
+
+function Monster:action(model)
+    if self.ai then
+        self.ai:action(self, model)
+    end
+end
+
+
+
+AI = {}
+
+function AI:new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function AI:action(model)
+end
+
+
+Wander = AI:new{ kind = {} }
+
+function Wander:action(entity, model)
+    local ns = filter(entity.pos:neighbors(), function(pos)
+        local cell = model.current:get(pos.x, pos.y)
+        return cell ~= nil and cell:vacant()
+    end)
+
+    if #ns <= 0 then
+        return
+    end
+
+    -- move in a random direction
+    model:moveEntity(entity, pick(ns))
+end

@@ -1,6 +1,7 @@
 
 require 'game.entity'
 require 'game.map'
+require 'utils'
 
 
 local function genSeed()
@@ -50,7 +51,7 @@ function Model:spawn(pos)
         return nil
     end
 
-    local mob = Monster:new{ pos = pos, hp = 1 }
+    local mob = Monster:new{ pos = pos, hp = 1, ai = Wander:new{} }
     table.insert(self.mobs, mob)
     cell:setEntity(mob)
 
@@ -77,6 +78,13 @@ function Model:enterLevel(depth)
     map:get(map.entrance):setEntity(self.player)
     self:spawn(Pos:new{ x = 3, y = 3 })
 end
+
+
+function Model:takeStep(playerAction)
+    playerAction()
+    self:moveMobs()
+end
+
 
 -- Returns either nil in the case that the move didn't trigger any action, or an
 -- entity if it is to trigger an attack.
@@ -156,5 +164,12 @@ function Model:interact()
     local cell = self.current:get(self.player.pos)
     if cell.prop then
         cell.prop:interact(self.player)
+    end
+end
+
+
+function Model:moveMobs()
+    for _,mob in pairs(self.mobs) do
+        mob:action(self)
     end
 end
