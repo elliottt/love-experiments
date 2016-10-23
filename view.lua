@@ -56,6 +56,10 @@ function View:load()
             self.dungeonSheet:get(16,14),
         },
 
+        [Hall.kind] = {
+            self.dungeonSheet:get(16,14),
+        },
+
         [Wall.kind] = {
             self.dungeonSheet:get(16,10),
         },

@@ -59,6 +59,7 @@ function Wall:passable()
 end
 
 Floor = Cell:new{ kind = {} }
+Hall  = Cell:new{ kind = {} }
 
 Door = Cell:new{ kind = {} }
 
@@ -273,9 +274,12 @@ function Map:placeHorizHallway(opts, left, right)
 
     -- draw a room for the hallway
     local w    = rx - lx + 1
-    local room = RectRoom.create(lx,y,w,1)
-    room:set(0,0,Door:new())
-    if w >= opts.hallwayDoorLen then
+    local room = Hallway.create(lx,y,w,1)
+    if self:validDoor(lx,y) then
+        room:set(0,0,Door:new())
+    end
+
+    if w >= opts.hallwayDoorLen and self:validDoor(lx+w-1,y) then
         room:set(w-1,0,Door:new())
     end
     self:addRoom(room)
@@ -333,12 +337,52 @@ function Map:placeVertHallway(opts, top, bottom)
 
     -- draw a room for the hallway
     local h = ry - ly + 1
-    local room = RectRoom.create(x,ly,1,h)
-    room:set(0,0,Door:new())
-    if h >= opts.hallwayDoorLen then
+    local room = Hallway.create(x,ly,1,h)
+    if self:validDoor(x,ly) then
+        room:set(0,0,Door:new())
+    end
+
+    if h >= opts.hallwayDoorLen and self:validDoor(x,ly+h-1) then
         room:set(0,h-1,Door:new())
     end
     self:addRoom(room)
+end
+
+
+function any(table,p)
+    for _,x in pairs(table) do
+        if p(x) then
+            return true
+        end
+    end
+    return false
+end
+
+
+function Map:neighbors(x,y)
+    return {
+        north = self:get(x,y-1),
+        east = self:get(x+1,y),
+        south = self:get(x,y+1),
+        west = self:get(x-1,y),
+    }
+end
+
+
+-- The assumption is that this is checking for placement before the hall has
+-- been blitted into the map. As such, it assumes that the there should be solid
+-- wall where the hallway would be.
+function Map:validDoor(x,y)
+    local passable = 0
+    for _,cell in pairs(self:neighbors(x,y)) do
+        if cell:passable() then
+            passable = passable + 1
+        end
+        if passable > 2 or cell.kind == Hall.kind or cell.kind == Door.kind then
+            return false
+        end
+    end
+    return true
 end
 
 
@@ -359,4 +403,13 @@ function RectRoom:pick()
     local x = choose(self.x, self.x + self.w - 1)
     local y = choose(self.y, self.y + self.h - 1)
     return Pos:new{ x=x, y=y }
+end
+
+
+Hallway = RectRoom:new{ kind = {} }
+
+function Hallway.create(x,y,w,h)
+    return Hallway:new{ x=x, y=y }:init(w,h,function()
+        return Hall:new()
+    end)
 end
