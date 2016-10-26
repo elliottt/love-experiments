@@ -187,9 +187,9 @@ function Map:placeRooms(opts,node)
         self:placeRooms(opts, node.right)
 
         if node.isVert then
-            self:placeHorizHallway(opts, node.left, node.right)
+            node.room = self:placeHorizHallway(opts, node.left, node.right)
         else
-            self:placeVertHallway(opts, node.left, node.right)
+            node.room = self:placeVertHallway(opts, node.left, node.right)
         end
     end
 end
@@ -226,67 +226,53 @@ function Map:placeRoom(opts, region)
 end
 
 
-function vertExtent(bsp)
-    local l,h = bsp.y + bsp.h, bsp.y
-    bsp:rooms(function(room)
-        if room.y < l then
-            l = room.y
-        end
+-- Find two rooms that overlap within the given regions, or return nil.
+function roomOverlap(by,top,bottom)
 
-        local y = room.y + room.h - 1
-        if y > h then
-            h = y
-        end
+    local pairs = {}
+
+    top:rooms(function(room)
+        local ai = by(room)
+        bottom:rooms(function(room2)
+            local bi      = by(room2)
+            local overlap = ai:overlaps(bi)
+            if overlap ~= nil then
+                table.insert(pairs, {overlap, room, room2})
+            end
+        end)
     end)
 
-    return l,h
+    if #pairs == 0 then
+        return nil
+    else
+        local pair = pick(pairs)
+        return pair[1], pair[2], pair[3]
+    end
+
 end
 
 
 function Map:placeHorizHallway(opts, left, right)
-    -- discover the hollow extent of each region
-    local ll,lh = vertExtent(left)
-    local rl,rh = vertExtent(right)
+    local overlap, r1, r2 = roomOverlap(RectRoom.vertExtent, left, right)
+    if r1 ~= nil then
+        local y = choose(overlap.l, overlap.h)
+        local x = r1.x + r1.w
+        local room = Hallway.create(x, y, r2.x-x, 1)
 
-    -- find the region where the two extents overlap
-    local l = math.max(ll,rl)
-    local h = math.min(lh,rh)
-    local y = choose(l+1,h-1)
-
-    -- walk out along the x-axis from the split point in both directions, until
-    -- a room is encountered
-    local lx = right.x - 1
-    local rx = lx
-    while lx > left.x do
-        if self:get(lx,y).kind ~= Wall.kind then
-            lx = lx + 1
-            break
-        else
-            lx = lx - 1
+        if self:validDoor(x,y) then
+            room:set(0,0,Door:new())
         end
-    end
 
-    local rb = right.x + right.w - 1
-    while rx < rb do
-        if self:get(rx,y).kind ~= Wall.kind then
-            rx = rx - 1
-            break
-        else
-            rx = rx + 1
+        if room.w >= opts.hallwayDoorLen and self:validDoor(x+room.w-1,y) then
+            room:set(room.w-1,0,Door:new())
         end
-    end
 
-    -- draw a room for the hallway
-    local w    = rx - lx + 1
-    local room = Hallway.create(lx,y,w,1)
-    if self:validDoor(lx,y) then
-        room:set(0,0,Door:new())
-    end
+        self:addRoom(room)
 
-    if w >= opts.hallwayDoorLen and self:validDoor(lx+w-1,y) then
-        room:set(w-1,0,Door:new())
+        return room
+    else
+        error('TODO: handle non-overlap')
     end
-    self:addRoom(room)
 end
 
 
@@ -307,49 +293,27 @@ function horizExtent(bsp)
 end
 
 function Map:placeVertHallway(opts, top, bottom)
-    -- discover the hollow extent of each region
-    local ll,lh = horizExtent(top)
-    local rl,rh = horizExtent(bottom)
+    local overlap, r1, r2 = roomOverlap(RectRoom.horizExtent, top, bottom)
+    if overlap ~= nil then
+        local x = choose(overlap.l, overlap.h)
+        local y = r1.y + r1.h
+        local room = Hallway.create(x, y, 1, r2.y - y)
 
-    -- find the region where the two extents overlap
-    local l = math.max(ll,rl)
-    local h = math.min(lh,rh)
-    local x = choose(l+1,h-1)
-
-    -- walk out along the x-axis from the split point in both directions, until
-    -- a room is encountered
-    local ly = bottom.y - 1
-    local ry = ly
-    while ly > top.y do
-        if self:get(x,ly).kind ~= Wall.kind then
-            ly = ly + 1
-            break
-        else
-            ly = ly - 1
+        if self:validDoor(x,y) then
+            room:set(0,0,Door:new())
         end
-    end
 
-    local rb = bottom.y + bottom.h - 1
-    while ry < rb do
-        if self:get(x,ry).kind ~= Wall.kind then
-            ry = ry - 1
-            break
-        else
-            ry = ry + 1
+        if room.h >= opts.hallwayDoorLen and self:validDoor(x,y+room.h-1) then
+            room:set(0,room.h-1,Door:new())
         end
+
+        self:addRoom(room)
+
+        return room
+    else
+        error('TODO: fix overlap failure')
     end
 
-    -- draw a room for the hallway
-    local h = ry - ly + 1
-    local room = Hallway.create(x,ly,1,h)
-    if self:validDoor(x,ly) then
-        room:set(0,0,Door:new())
-    end
-
-    if h >= opts.hallwayDoorLen and self:validDoor(x,ly+h-1) then
-        room:set(0,h-1,Door:new())
-    end
-    self:addRoom(room)
 end
 
 
@@ -392,11 +356,22 @@ end
 
 RectRoom = Grid:new{ kind = {} }
 
+
 function RectRoom.create(x, y, w, h)
     return RectRoom:new{
         x=x,
         y=y
     }:init(w,h,function() return Floor:new() end)
+end
+
+-- Return the padded interval that represents the vertical extent of the room.
+function RectRoom:vertExtent()
+    return Interval.create(self.y+1, self.y+self.h-2)
+end
+
+-- Return the padded interval that represents the vertical extent of the room.
+function RectRoom:horizExtent()
+    return Interval.create(self.x+1, self.x+self.w-2)
 end
 
 function RectRoom:apply(map)
@@ -416,4 +391,32 @@ function Hallway.create(x,y,w,h)
     return Hallway:new{ x=x, y=y }:init(w,h,function()
         return Hall:new()
     end)
+end
+
+
+
+Interval = {}
+
+function Interval:new(o)
+    o = o or {}
+    setmetatable(o,self)
+    self.__index = self
+    return o
+end
+
+function Interval.create(l,h)
+    return Interval:new{l=l, h=h}
+end
+
+function Interval:overlaps(other)
+    if not (self.l > other.h or self.h < other.l) then
+        return Interval.create(math.max(self.l, other.l),
+                math.min(self.h, other.h))
+    else
+        return nil
+    end
+end
+
+function Interval:__tostring()
+    return string.format('<Interval %d %d>', self.l, self.h)
 end
