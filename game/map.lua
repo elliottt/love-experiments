@@ -227,33 +227,44 @@ end
 
 
 -- Find two rooms that overlap within the given regions, or return nil.
-function roomOverlap(by,top,bottom)
+function roomOverlap(mkExtent,distance,top,bottom)
 
-    local pairs = {}
+    local ps = {}
 
-    top:rooms(function(room)
-        local ai = by(room)
+    top:rooms(function(room1)
+        local ai = mkExtent(room1)
         bottom:rooms(function(room2)
-            local bi      = by(room2)
+            local bi      = mkExtent(room2)
             local overlap = ai:overlaps(bi)
             if overlap ~= nil then
-                table.insert(pairs, {overlap, room, room2})
+                table.insert(ps, {
+                    overlap=overlap,
+                    dist=distance(room1,room2),
+                    room1=room1,
+                    room2=room2,
+                })
             end
         end)
     end)
 
-    if #pairs == 0 then
+    table.sort(ps, function(a,b)
+        return a.dist < b.dist
+    end)
+
+    if #ps == 0 then
         return nil
     else
-        local pair = pick(pairs)
-        return pair[1], pair[2], pair[3]
+        local pair = ps[1]
+        return pair.overlap, pair.room1, pair.room2
     end
 
 end
 
 
 function Map:placeHorizHallway(opts, left, right)
-    local overlap, r1, r2 = roomOverlap(RectRoom.vertExtent, left, right)
+    local overlap, r1, r2 = roomOverlap(RectRoom.vertExtent,
+            RectRoom.horizDistance, left, right)
+
     if r1 ~= nil then
         local y = choose(overlap.l, overlap.h)
         local x = r1.x + r1.w
@@ -276,24 +287,9 @@ function Map:placeHorizHallway(opts, left, right)
 end
 
 
-function horizExtent(bsp)
-    local l,h = bsp.x + bsp.w, bsp.x
-    bsp:rooms(function(room)
-        if room.x < l then
-            l = room.x
-        end
-
-        local x = room.x + room.w - 1
-        if x > h then
-            h = x
-        end
-    end)
-
-    return l,h
-end
-
 function Map:placeVertHallway(opts, top, bottom)
-    local overlap, r1, r2 = roomOverlap(RectRoom.horizExtent, top, bottom)
+    local overlap, r1, r2 = roomOverlap(RectRoom.horizExtent,
+            RectRoom.vertDistance, top, bottom)
     if overlap ~= nil then
         local x = choose(overlap.l, overlap.h)
         local y = r1.y + r1.h
@@ -360,8 +356,27 @@ RectRoom = Grid:new{ kind = {} }
 function RectRoom.create(x, y, w, h)
     return RectRoom:new{
         x=x,
-        y=y
+        y=y,
+        b=y+h-1, -- bottom
+        r=x+w-1, -- right
     }:init(w,h,function() return Floor:new() end)
+end
+
+function RectRoom:horizDistance(other)
+    if other.r < self.x then
+        return self.x - other.r - 1
+    else
+        return other.x - self.r - 1
+    end
+end
+
+function RectRoom:vertDistance(other)
+    if other.b < self.y then
+        return self.y - other.b - 1
+    else
+        return other.y - self.b - 1
+    end
+
 end
 
 -- Return the padded interval that represents the vertical extent of the room.
@@ -388,9 +403,12 @@ end
 Hallway = RectRoom:new{ kind = {} }
 
 function Hallway.create(x,y,w,h)
-    return Hallway:new{ x=x, y=y }:init(w,h,function()
-        return Hall:new()
-    end)
+    return Hallway:new{
+        x=x,
+        y=y,
+        b=y+h-1, -- bottom
+        r=x+w-1, -- right
+    }:init(w,h,function() return Hall:new() end)
 end
 
 
