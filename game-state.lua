@@ -1,10 +1,12 @@
 
 require 'game.model'
 require 'view'
+require 'sprites'
 
 
 GameState = {
-    keys = {}
+    kind = {},
+    keys = nil,
 }
 
 function GameState:new(o)
@@ -39,6 +41,10 @@ function GameState:mousemoved()
 end
 
 function GameState:keypressed(key,scan,isrepeat)
+    if self.keys == nil then
+        return
+    end
+
     local handler = self.keys[key]
     if handler then
         return handler(self,scan,isrepeat)
@@ -53,6 +59,7 @@ end
 
 
 MenuState = GameState:new{
+    kind = {},
     game = nil,
     keys = {
         n = function(self)
@@ -61,6 +68,18 @@ MenuState = GameState:new{
 
         q = function(self)
             love.event.quit()
+        end,
+
+        a = function(self)
+            return SpriteSheetView:new():init(self, 'sprites/roguelikeChar_transparent.png')
+        end,
+
+        b = function(self)
+            return SpriteSheetView:new():init(self, 'sprites/roguelikeDungeon_transparent.png')
+        end,
+
+        c = function(self)
+            return SpriteSheetView:new():init(self, 'sprites/roguelikeSheet_transparent.png')
         end,
     }
 }
@@ -72,10 +91,14 @@ end
 
 function MenuState:draw()
     love.graphics.print('Press `n` to start a new game', 100, 100)
+    love.graphics.print('Press `a` to view character sheet', 100, 120)
+    love.graphics.print('Press `b` to view dungeon sheet', 100, 130)
+    love.graphics.print('Press `c` to view roguelike sheet', 100, 140)
 end
 
 
 PlayingState = GameState:new{
+    kind  = {},
     menu  = nil,
     model = nil,
     view  = nil,
@@ -155,4 +178,68 @@ end
 
 function PlayingState:draw()
     self.view:draw(self.model)
+end
+
+
+SpriteSheetView = GameState:new{
+    kind = {},
+    menu = nil,
+    dragging = false,
+    x = 0,
+    y = 0,
+    keys = {
+        q = function(self)
+            return self.menu
+        end,
+    }
+}
+
+function SpriteSheetView:init(menu, file)
+    self.menu = menu
+
+    self.sheet =
+        SpriteSheet.create(file, {
+            width = 16,
+            height = 16,
+            border_x = 1,
+            border_y = 1,
+        })
+
+    return self
+end
+
+function SpriteSheetView:mousepressed(x,y,button)
+    if button == 1 then
+        self.dragging = true
+    end
+end
+
+function SpriteSheetView:mousereleased()
+    self.dragging = false
+end
+
+function SpriteSheetView:mousemoved(x,y,dx,dy)
+    if self.dragging then
+        self.x = self.x + dx
+        self.y = self.y + dy
+    end
+end
+
+
+function SpriteSheetView:draw()
+    love.graphics.push('transform')
+    love.graphics.translate(self.x, self.y)
+
+    local mx = love.mouse.getX() - self.x
+    local my = love.mouse.getY() - self.y
+
+    self.sheet:draw(0,0)
+    love.graphics.pop()
+
+    if mx >= 0 and mx < self.sheet.image:getWidth()
+        and my >= 0 and my < self.sheet.image:getHeight() then
+
+        love.graphics.print(string.format('%d x %d', self.sheet:cellIx(mx,my)), 0, 0)
+
+    end
 end

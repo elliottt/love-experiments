@@ -51,7 +51,7 @@ end
 
 function love.keypressed(key,scan,isrepeat)
     local newState = state:keypressed(key,scan,isrepeat)
-    if newState then
+    if newState ~= nil then
         switchTo(newState)
     end
 end

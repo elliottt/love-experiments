@@ -45,6 +45,10 @@ function SpriteSheet.create(path, opts)
     sheet.image = love.graphics.newImage(path)
     sheet.image:setFilter('nearest', 'nearest')
     sheet.loaded = {}
+    sheet.cols  = math.floor((sheet.image:getWidth()  - opts.off_x)
+            / (opts.width  + opts.border_x))
+    sheet.rows = math.floor((sheet.image:getHeight() - opts.off_y)
+            / (opts.height + opts.border_y))
     return sheet
 end
 
@@ -69,4 +73,13 @@ function SpriteSheet:get(x,y)
     row[y] = img
 
     return img
+end
+
+function SpriteSheet:draw(x,y)
+    love.graphics.draw(self.image, x, y)
+end
+
+function SpriteSheet:cellIx(x,y)
+    return math.floor((y - self.off_y) / (self.height + self.border_y)),
+           math.floor((x - self.off_x) / (self.width  + self.border_x))
 end
