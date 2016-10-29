@@ -40,6 +40,9 @@ end
 function GameState:mousemoved()
 end
 
+function GameState:wheelmoved()
+end
+
 function GameState:keypressed(key,scan,isrepeat)
     if self.keys == nil then
         return
@@ -187,6 +190,7 @@ SpriteSheetView = GameState:new{
     dragging = false,
     x = 0,
     y = 0,
+    scale = 1,
     keys = {
         q = function(self)
             return self.menu
@@ -225,13 +229,21 @@ function SpriteSheetView:mousemoved(x,y,dx,dy)
     end
 end
 
+function SpriteSheetView:wheelmoved(x,y)
+    if y > 0 then
+        self.scale = math.max(1, self.scale - 0.1)
+    elseif y < 0 then
+        self.scale = math.min(self.scale + 0.1, 4)
+    end
+end
 
 function SpriteSheetView:draw()
     love.graphics.push('transform')
     love.graphics.translate(self.x, self.y)
+    love.graphics.scale(self.scale, self.scale)
 
-    local mx = love.mouse.getX() - self.x
-    local my = love.mouse.getY() - self.y
+    local mx = (love.mouse.getX() - self.x) / self.scale
+    local my = (love.mouse.getY() - self.y) / self.scale
 
     self.sheet:draw(0,0)
     love.graphics.pop()

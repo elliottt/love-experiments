@@ -43,6 +43,10 @@ function love.mousemoved(x,y,dx,dy,t)
     state:mousemoved(x,y,dx,dy,t)
 end
 
+function love.wheelmoved(x,y)
+    state:wheelmoved(x,y)
+end
+
 function love.draw()
     love.graphics.push()
     state:draw()
