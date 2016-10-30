@@ -83,3 +83,8 @@ function SpriteSheet:cellIx(x,y)
     return math.floor((y - self.off_y) / (self.height + self.border_y)),
            math.floor((x - self.off_x) / (self.width  + self.border_x))
 end
+
+function SpriteSheet:cellAlign(x,y)
+    return math.floor(x - self.off_x - (x % (self.width  + self.border_x)) + self.border_x),
+           math.floor(y - self.off_y - (y % (self.height + self.border_y)) + self.border_y)
+end

@@ -238,20 +238,31 @@ function SpriteSheetView:wheelmoved(x,y)
 end
 
 function SpriteSheetView:draw()
+    local mx = (love.mouse.getX() - self.x) / self.scale
+    local my = (love.mouse.getY() - self.y) / self.scale
+    local inBounds = mx >= 0 and mx < self.sheet.image:getWidth()
+                 and my >= 0 and my < self.sheet.image:getHeight()
+
     love.graphics.push('transform')
     love.graphics.translate(self.x, self.y)
     love.graphics.scale(self.scale, self.scale)
 
-    local mx = (love.mouse.getX() - self.x) / self.scale
-    local my = (love.mouse.getY() - self.y) / self.scale
-
     self.sheet:draw(0,0)
+
+    if inBounds then
+        local r, g, b, a = love.graphics.getColor()
+        love.graphics.setColor(255, 255, 255, 100)
+        local x, y = self.sheet:cellAlign(mx,my)
+        love.graphics.rectangle('fill', x, y, self.sheet.width, self.sheet.height)
+        love.graphics.setColor(r,g,b,a)
+    end
+
     love.graphics.pop()
 
-    if mx >= 0 and mx < self.sheet.image:getWidth()
-        and my >= 0 and my < self.sheet.image:getHeight() then
+    if inBounds then
 
         love.graphics.print(string.format('%d x %d', self.sheet:cellIx(mx,my)), 0, 0)
+
 
     end
 end
