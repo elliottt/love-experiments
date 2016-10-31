@@ -270,14 +270,7 @@ function Map:placeHorizHallway(opts, left, right)
         local x = r1.x + r1.w
         local room = Hallway.create(x, y, r2.x-x, 1)
 
-        if self:validDoor(x,y) then
-            room:set(0,0,Door:new())
-        end
-
-        if room.w >= opts.hallwayDoorLen and self:validDoor(x+room.w-1,y) then
-            room:set(room.w-1,0,Door:new())
-        end
-
+        self:chooseHallways(opts, room, room.w)
         self:addRoom(room)
 
         return room
@@ -295,19 +288,39 @@ function Map:placeVertHallway(opts, top, bottom)
         local y = r1.y + r1.h
         local room = Hallway.create(x, y, 1, r2.y - y)
 
-        if self:validDoor(x,y) then
-            room:set(0,0,Door:new())
-        end
-
-        if room.h >= opts.hallwayDoorLen and self:validDoor(x,y+room.h-1) then
-            room:set(0,room.h-1,Door:new())
-        end
-
+        self:chooseHallways(opts, room, room.h)
         self:addRoom(room)
 
         return room
     else
         error('TODO: fix overlap failure')
+    end
+
+end
+
+
+-- Place hallways at each end of a hallway.
+function Map:chooseHallways(opts, room, len)
+
+    if len >= opts.hallwayDoorLen then
+
+        if self:validDoor(room.x, room.y) then
+            room:set(0,0,Door:new())
+        end
+
+        if self:validDoor(room.r, room.b) then
+            room:set(room.w-1, room.h-1, Door:new())
+        end
+
+    else
+
+        local side = flipCoin()
+        if side and self:validDoor(room.x, room.y) then
+            room:set(0,0,Door:new())
+        elseif self:validDoor(room.r, room.b) then
+            room:set(room.w-1, room.h-1, Door:new())
+        end
+
     end
 
 end
