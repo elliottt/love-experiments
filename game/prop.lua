@@ -10,7 +10,7 @@ function Prop:new(o)
     return o
 end
 
-function Prop:interact(player)
+function Prop:interact(player, cell, model)
 end
 
 
@@ -35,14 +35,14 @@ end
 
 UpStairs = Prop:new{ kind = {} }
 
-function UpStairs:interact(player, cell)
-    print('upstairs!')
+function UpStairs:interact(player, cell, model)
+    model:ascend()
 end
 
 
 
 DownStairs = Prop:new{ kind = {} }
 
-function UpStairs:interact(player, cell)
-    print('down stairs!')
+function DownStairs:interact(player, cell, model)
+    model:descend()
 end

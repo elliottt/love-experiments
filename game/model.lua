@@ -27,8 +27,8 @@ function Model.create(opts)
         },
         mapWidth = opts.mapWidth or 128,
         mapHeight = opts.mapHeight or 128,
-        mobs = {},
         levels = {},
+        level = 0,
         current = nil,
         seed = opts.seed or genSeed(),
     }
@@ -41,29 +41,31 @@ function Model.create(opts)
 end
 
 function Model:map()
-    return self.current
+    return self.current.map
 end
 
 -- Spawn a mob, dependent on current level.
 function Model:spawn(pos)
-    local cell = self.current:get(pos)
-    if cell.entity then
-        return nil
-    end
+    return self.current:spawn(pos)
+end
 
-    local mob = Monster:new{ pos = pos, hp = 1, ai = Wander:new{} }
-    table.insert(self.mobs, mob)
-    cell:setEntity(mob)
+function Model:ascend()
+    return self:enterLevel(self.level - 1)
+end
 
-    return mob
+function Model:descend()
+    return self:enterLevel(self.level + 1)
 end
 
 -- Generate a fresh level, or restore an already existing level.
 function Model:enterLevel(depth)
-    self.level = depth
+
+    if depth <= 0 then
+        return
+    end
 
     if self.levels[depth] == nil then
-        self.levels[depth] = Map.create{
+        self.levels[depth] = Level.create{
             width = self.mapWidth,
             height = self.mapHeight,
             depth = depth,
@@ -71,30 +73,40 @@ function Model:enterLevel(depth)
     end
 
     self.current = self.levels[depth]
-    local map = self.current
+    local map = self:map()
 
-    -- place the player at the entrance to the level
-    self.player.pos = map.entrance
-    map:get(map.entrance):setEntity(self.player)
-    self:spawn(Pos:new{ x = 3, y = 3 })
+    -- if descending, place the player in the up-stairs
+    local pos
+    if self.level < depth then
+        pos = map.entrance
+    else
+        pos = map.exit
+    end
+
+    self.level = depth
+
+    self.player.pos = pos
+    map:get(pos):setEntity(self.player)
 end
 
 
 function Model:takeStep(playerAction)
     playerAction()
-    self:moveMobs()
+    self.current:moveMobs(self)
 end
 
 
 -- Returns either nil in the case that the move didn't trigger any action, or an
 -- entity if it is to trigger an attack.
 function Model:moveEntity(entity, newPos)
+    local map = self:map()
+
     -- ignore invalid new positions
-    if not self.current:inBounds(newPos) then
+    if not map:inBounds(newPos) then
         return nil
     end
 
-    local cell = self.current:get(newPos)
+    local cell = map:get(newPos)
 
     -- ignore movement into a wall
     if not cell:passable() then
@@ -106,7 +118,7 @@ function Model:moveEntity(entity, newPos)
         return cell, cell.entity
     end
 
-    local oldCell  = self.current:get(entity.pos)
+    local oldCell  = map:get(entity.pos)
     oldCell.entity = nil
     cell.entity    = entity
     entity.pos     = newPos
@@ -151,25 +163,60 @@ function Model:kill(cell)
 end
 
 function Model:removeMob(entity)
+    self.current:removeMob(entity)
+end
+
+-- Interact the player with something
+function Model:interact()
+    local cell = self:map():get(self.player.pos)
+    if cell.prop then
+        cell.prop:interact(self.player, cell, self)
+    end
+end
+
+
+Level = {}
+
+function Level:new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function Level.create(opts)
+    return Level:new{
+        map  = Map.create(opts),
+        mobs = {},
+    }
+end
+
+function Level:spawn(pos)
+    local cell = self.map:get(pos)
+    if cell.entity then
+        return nil
+    end
+
+    local mob = Monster:new{ pos = pos, hp = 1, ai = Wander:new{} }
+    table.insert(self.mobs, mob)
+    cell:setEntity(mob)
+
+    return mob
+end
+
+function Level:moveMobs(model)
+    for _,mob in pairs(self.mobs) do
+        mob:action(model)
+    end
+
+    return self
+end
+
+function Level:removeMob(entity)
     for i,mob in ipairs(self.mobs) do
         if mob == entity then
             table.remove(self.mobs, i)
             return
         end
-    end
-end
-
--- Interact the player with something
-function Model:interact()
-    local cell = self.current:get(self.player.pos)
-    if cell.prop then
-        cell.prop:interact(self.player)
-    end
-end
-
-
-function Model:moveMobs()
-    for _,mob in pairs(self.mobs) do
-        mob:action(self)
     end
 end

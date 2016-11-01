@@ -47,7 +47,7 @@ Wander = AI:new{ kind = {} }
 
 function Wander:action(entity, model)
     local ns = filter(entity.pos:neighbors(), function(pos)
-        local cell = model.current:get(pos.x, pos.y)
+        local cell = model:map():get(pos.x, pos.y)
         return cell ~= nil and cell:vacant()
     end)
 

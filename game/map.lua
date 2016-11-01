@@ -107,6 +107,7 @@ function Map.create(opts)
         entrance = nil,
         depth = opts.depth,
         rooms = {},
+        halls = {},
     }:init(opts.width, opts.height, function() return Wall:new() end)
 
     map:gen(opts)
@@ -121,15 +122,12 @@ function Map:gen(opts)
     self:placeRooms(opts,bsp)
 
     -- pick a rooms for the entrance and exit
-    local entrance
-    repeat
-        entrance = pick(self.rooms)
-    until entrance.kind ~= Hallway.kind
+    local entrance = pick(self.rooms)
 
     local exit
     repeat
         exit = pick(self.rooms)
-    until (exit ~= entrance and exit.kind ~= Hallway.kind)
+    until exit ~= entrance
 
     -- pick a point for the stairs
     self.entrance = entrance:pick():adjust(entrance.x, entrance.y)
@@ -205,6 +203,10 @@ function Map:placeRooms(opts,node)
     end
 end
 
+function Map:addHall(hall)
+    hall:apply(self)
+    table.insert(self.halls, hall)
+end
 
 function Map:addRoom(room)
     room:apply(self)
@@ -282,7 +284,7 @@ function Map:placeHorizHallway(opts, left, right)
         local room = Hallway.create(x, y, r2.x-x, 1)
 
         self:chooseHallways(opts, room, room.w)
-        self:addRoom(room)
+        self:addHall(room)
 
         return room
     else
@@ -300,7 +302,7 @@ function Map:placeVertHallway(opts, top, bottom)
         local room = Hallway.create(x, y, 1, r2.y - y)
 
         self:chooseHallways(opts, room, room.h)
-        self:addRoom(room)
+        self:addHall(room)
 
         return room
     else
