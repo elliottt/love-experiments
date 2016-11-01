@@ -38,3 +38,11 @@ UpStairs = Prop:new{ kind = {} }
 function UpStairs:interact(player, cell)
     print('upstairs!')
 end
+
+
+
+DownStairs = Prop:new{ kind = {} }
+
+function UpStairs:interact(player, cell)
+    print('down stairs!')
+end

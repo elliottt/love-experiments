@@ -74,6 +74,11 @@ function View:load()
             self.roguelikeSheet:get(35,18),
         },
 
+        [DownStairs.kind] = {
+            self.dungeonSheet:get(16,14),
+            self.roguelikeSheet:get(37,18),
+        },
+
         [Chest.kind] = {
             self.roguelikeSheet:get(38,11),
             self.roguelikeSheet:get(38,10),

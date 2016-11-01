@@ -120,13 +120,24 @@ function Map:gen(opts)
     local bsp = self:divide(opts)
     self:placeRooms(opts,bsp)
 
-    -- pick the first generated room as the entrance
-    local entrance = self.rooms[1]
-    entrance:apply(self)
+    -- pick a rooms for the entrance and exit
+    local entrance
+    repeat
+        entrance = pick(self.rooms)
+    until entrance.kind ~= Hallway.kind
 
-    -- pick a point in the room to be an entrance
-    self.entrance = entrance:pick()
+    local exit
+    repeat
+        exit = pick(self.rooms)
+    until (exit ~= entrance and exit.kind ~= Hallway.kind)
+
+    -- pick a point for the stairs
+    self.entrance = entrance:pick():adjust(entrance.x, entrance.y)
     self:get(self.entrance):setProp(UpStairs:new())
+
+    -- pick a point for the down-stairs
+    self.exit = exit:pick():adjust(exit.x, exit.y)
+    self:get(self.exit):setProp(DownStairs:new())
 end
 
 
@@ -407,8 +418,8 @@ function RectRoom:apply(map)
 end
 
 function RectRoom:pick()
-    local x = choose(self.x, self.x + self.w - 1)
-    local y = choose(self.y, self.y + self.h - 1)
+    local x = choose(0, self.w-1)
+    local y = choose(0, self.h-1)
     return Pos:new{ x=x, y=y }
 end
 

@@ -8,6 +8,10 @@ function Pos:new(o)
     return o
 end
 
+function Pos.create(x,y)
+    return Pos:new{ x=x, y=y }
+end
+
 function Pos:parts()
     return self.x, self.y
 end
@@ -35,4 +39,10 @@ function Pos:neighbors()
         Pos:new{ x = self.x,   y = self.y+1},
         Pos:new{ x = self.x-1, y = self.y  },
     }
+end
+
+function Pos:adjust(x,y)
+    self.x = self.x + x
+    self.y = self.y + y
+    return self
 end
