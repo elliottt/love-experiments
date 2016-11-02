@@ -137,6 +137,14 @@ function View:moveBy(dx,dy)
     self.offy = self.offy + dy
 end
 
+function View:toggleTint()
+    if self.tintVal == false then
+        self.tintVal = 1.0
+    else
+        self.tintVal = false
+    end
+end
+
 function View:draw(model)
 
     self:center(model, 1)
@@ -148,7 +156,7 @@ function View:draw(model)
             love.graphics.push('transform')
             love.graphics.translate(self.cellWidth * col, self.cellHeight * row)
 
-            self.tint:send('tint', cell.light)
+            self.tint:send('tint', self.tintVal or cell.light)
             self:drawCell(cell)
 
             love.graphics.pop()

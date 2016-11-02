@@ -110,6 +110,10 @@ PlayingState = GameState:new{
             return self.menu
         end,
 
+        v = function(self)
+            self.view:toggleTint()
+        end,
+
         h = function(self)
             self.model:takeStep(function()
                 self.model:movePlayer(Pos.moveWest)
