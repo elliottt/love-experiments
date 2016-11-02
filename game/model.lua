@@ -83,10 +83,13 @@ function Model:enterLevel(depth)
         pos = map.exit
     end
 
+
     self.level = depth
 
     self.player.pos = pos
     map:get(pos):setEntity(self.player)
+
+    map:fov(pos, 5)
 end
 
 
@@ -131,9 +134,12 @@ end
 function Model:movePlayer(by)
     local newPos = by(self.player.pos)
 
-    -- if the movement is succeessful, no cell is returned
+    -- if the movement is succeessful or invalid, no cell is returned
     local cell, target = self:moveEntity(self.player, newPos)
     if cell == nil then
+        if newPos ~= nil then
+            self:map():fov(newPos, 5)
+        end
         return
     end
 

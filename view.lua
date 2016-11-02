@@ -23,6 +23,8 @@ end
 
 function View:load()
 
+    self.tint = love.graphics.newShader('shaders/tint.glsl')
+
     self.charSheet =
         SpriteSheet.create('sprites/roguelikeChar_transparent.png', {
             width = self.cellWidth,
@@ -130,28 +132,29 @@ function View:center(model, scale)
             - self.cellHeight / 2)
 end
 
-
 function View:moveBy(dx,dy)
     self.offx = self.offx + dx
     self.offy = self.offy + dy
 end
-
 
 function View:draw(model)
 
     self:center(model, 1)
 
     -- draw the base tiles
+    love.graphics.setShader(self.tint)
     for row,elems in model:map():rows() do
         for col,cell in elems do
             love.graphics.push('transform')
             love.graphics.translate(self.cellWidth * col, self.cellHeight * row)
 
+            self.tint:send('tint', cell.light)
             self:drawCell(cell)
 
             love.graphics.pop()
         end
     end
+    love.graphics.setShader()
 
 end
 

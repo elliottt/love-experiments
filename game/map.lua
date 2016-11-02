@@ -13,6 +13,7 @@ Cell = {
     entity = nil,
     items  = nil,
     kind   = nil,
+    light  = 0.0,
 }
 
 function Cell:new(o)
@@ -58,15 +59,31 @@ end
 
 Wall = Cell:new{ kind = {} }
 
+function Wall.create()
+    return Wall:new{ light = 0.0 }
+end
+
 function Wall:passable()
     return false
 end
 
 Floor = Cell:new{ kind = {} }
+
+function Floor.create()
+    return Floor:new{}
+end
+
 Hall  = Cell:new{ kind = {} }
+
+function Hall.create()
+    return Hall:new{}
+end
 
 Door = Cell:new{ kind = {} }
 
+function Door.create()
+    return Door:new{}
+end
 
 Map = Grid:new{ kind = {} }
 
@@ -108,7 +125,7 @@ function Map.create(opts)
         depth = opts.depth,
         rooms = {},
         halls = {},
-    }:init(opts.width, opts.height, function() return Wall:new() end)
+    }:init(opts.width, opts.height, function() return Wall.create() end)
 
     map:gen(opts)
 
@@ -318,20 +335,20 @@ function Map:chooseHallways(opts, room, len)
     if len >= opts.hallwayDoorLen then
 
         if self:validDoor(room.x, room.y) then
-            room:set(0,0,Door:new())
+            room:set(0,0,Door.create())
         end
 
         if self:validDoor(room.r, room.b) then
-            room:set(room.w-1, room.h-1, Door:new())
+            room:set(room.w-1, room.h-1, Door.create())
         end
 
     else
 
         local side = flipCoin()
         if side and self:validDoor(room.x, room.y) then
-            room:set(0,0,Door:new())
+            room:set(0,0,Door.create())
         elseif self:validDoor(room.r, room.b) then
-            room:set(room.w-1, room.h-1, Door:new())
+            room:set(room.w-1, room.h-1, Door.create())
         end
 
     end
@@ -378,14 +395,13 @@ end
 
 RectRoom = Grid:new{ kind = {} }
 
-
 function RectRoom.create(x, y, w, h)
     return RectRoom:new{
         x=x,
         y=y,
         b=y+h-1, -- bottom
         r=x+w-1, -- right
-    }:init(w,h,function() return Floor:new() end)
+    }:init(w,h,function() return Floor.create() end)
 end
 
 function RectRoom:horizDistance(other)
@@ -434,7 +450,7 @@ function Hallway.create(x,y,w,h)
         y=y,
         b=y+h-1, -- bottom
         r=x+w-1, -- right
-    }:init(w,h,function() return Hall:new() end)
+    }:init(w,h,function() return Hall.create() end)
 end
 
 
