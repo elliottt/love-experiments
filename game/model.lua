@@ -3,6 +3,8 @@ require 'game.entity'
 require 'game.map'
 require 'utils'
 
+search = require('search')
+
 
 local function genSeed()
     return love.math.random(0, 2 ^ 54 - 1)
@@ -132,8 +134,10 @@ end
 -- Apply a function to the player's position, likely one of the Pos:move*
 -- functions.
 function Model:movePlayer(by)
-    local newPos = by(self.player.pos)
+    return self:playerMove(by(self.player.pos))
+end
 
+function Model:playerMove(newPos)
     -- if the movement is succeessful or invalid, no cell is returned
     local cell, target = self:moveEntity(self.player, newPos)
     if cell == nil then
@@ -146,6 +150,35 @@ function Model:movePlayer(by)
     if target.hp == 0 then
         notify('dead', cell)
         self:kill(cell)
+    end
+end
+
+-- Choose the player's next step using A* towards the exit.
+function Model:searchStep()
+
+    local map  = self:map()
+    local path = search.astar(self.player.pos,
+
+        function(pos)
+            local res = {}
+            for i,n in ipairs(pos:neighbors()) do
+                cell = map:get(n)
+                if cell and cell:passable() then
+                    table.insert(res, n)
+                end
+            end
+
+            return res
+        end,
+
+        function(pos)
+            return map.exit:dist(pos)
+        end)
+
+    if path ~= nil then
+        return self:playerMove(path[1])
+    else
+        return
     end
 
 end

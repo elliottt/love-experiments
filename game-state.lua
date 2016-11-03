@@ -138,6 +138,12 @@ PlayingState = GameState:new{
             end)
         end,
 
+        x = function(self)
+            self.model:takeStep(function()
+                self.model:searchStep()
+            end)
+        end,
+
         ['.'] = function(self)
             self.model:takeStep(function()
             end)

@@ -8,6 +8,10 @@ function Pos:new(o)
     return o
 end
 
+function Pos:dist(other)
+    return math.sqrt((self.x - other.x) ^ 2 + (self.y - other.y)^2)
+end
+
 function Pos.create(x,y)
     return Pos:new{ x=x, y=y }
 end
