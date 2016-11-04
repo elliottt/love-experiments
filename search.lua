@@ -1,4 +1,6 @@
 
+Set = require 'set'
+
 
 local search = {}
 
@@ -12,7 +14,7 @@ local search = {}
 -- @measure : a -> Int
 --
 -- @return an array of moves, or nil if no solution was found
-function search.astar(start, extend, measure, bound)
+function search.astar(start, hash, extend, measure, bound)
 
     bound = bound or 100
 
@@ -49,21 +51,29 @@ function search.astar(start, extend, measure, bound)
         return result
     end
 
-    local visited = {}
+    local visited = Set.create(hash)
     local queue   = { mkNode(nil, start) }
 
     local node
     local children
+    local it = 0
     while #queue > 0 do
         node = table.remove(queue,1)
-        visited[node.state] = node
+        print(node.state:hash())
+        visited:insert(node.state)
+
+        it = it + 1
+        if it > bound then
+            return nil
+        end
 
         if node.distance == 0 then
             return extractPath(node)
         else
             local added = false
+            print(node.state)
             for _,child in ipairs(extend(node.state)) do
-                if visited[child] == nil then
+                if not visited:member(child) then
                     table.insert(queue, mkNode(node, child))
                     added = true
                 end

@@ -159,6 +159,8 @@ function Model:searchStep()
     local map  = self:map()
     local path = search.astar(self.player.pos,
 
+        Pos.hash,
+
         function(pos)
             local res = {}
             for i,n in ipairs(pos:neighbors()) do

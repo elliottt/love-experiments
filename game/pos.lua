@@ -8,6 +8,14 @@ function Pos:new(o)
     return o
 end
 
+function Pos:__tostring()
+    return string.format('<Pos %d %d>', self:parts())
+end
+
+function Pos:hash()
+    return bit.lshift(self.x,16) + self.y
+end
+
 function Pos:dist(other)
     return math.sqrt((self.x - other.x) ^ 2 + (self.y - other.y)^2)
 end
