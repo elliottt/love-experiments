@@ -144,7 +144,7 @@ function Map:gen(opts)
     local exit
     repeat
         exit = pick(self.rooms)
-    until exit ~= entrance
+    until (exit ~= entrance or #self.rooms <= 1)
 
     -- pick a point for the stairs
     self.entrance = entrance:pick():adjust(entrance.x, entrance.y)
