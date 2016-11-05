@@ -10,8 +10,10 @@ local search = {}
 -- then adds them to the work queue (assuming they haven't been seen yet).
 --
 -- @state   : a
+-- @hash    : a -> Int
 -- @extend  : a -> [a]
 -- @measure : a -> Int
+-- @bound   : Int
 --
 -- @return an array of moves, or nil if no solution was found
 function search.astar(start, hash, extend, measure, bound)
@@ -59,7 +61,6 @@ function search.astar(start, hash, extend, measure, bound)
     local it = 0
     while #queue > 0 do
         node = table.remove(queue,1)
-        print(node.state:hash())
         visited:insert(node.state)
 
         it = it + 1
@@ -71,7 +72,6 @@ function search.astar(start, hash, extend, measure, bound)
             return extractPath(node)
         else
             local added = false
-            print(node.state)
             for _,child in ipairs(extend(node.state)) do
                 if not visited:member(child) then
                     table.insert(queue, mkNode(node, child))

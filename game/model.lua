@@ -154,19 +154,22 @@ function Model:playerMove(newPos)
     end
 end
 
-function Model:findPath(a,b)
+-- Find a path from a to b, ignoring cells below a given light threshold.
+function Model:findPath(a,b,threshold)
     local map = self:map()
     return search.astar(a,
 
         -- hash positions in the visited set
-        Pos.hash,
+        function(p)
+            return p:hash()
+        end,
 
         -- filter out neighbors that aren't passable
         function(pos)
             local res = {}
             for i,n in ipairs(pos:neighbors()) do
                 cell = map:get(n)
-                if cell and cell:passable() then
+                if cell and cell:passable() and cell.light >= threshold then
                     table.insert(res, n)
                 end
             end
@@ -187,7 +190,9 @@ function Model:searchStep()
     if self.player.path then
         path = self.player.path
     else
-        path = self:findPath(self.player.pos, self:map().exit)
+        -- the player is only allowed to find paths that involve parts of the
+        -- level that they have seen before.
+        path = self:findPath(self.player.pos, self:map().exit, 0.5)
         self.player.path = path
     end
 

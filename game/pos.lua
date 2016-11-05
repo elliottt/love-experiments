@@ -12,6 +12,10 @@ function Pos:__tostring()
     return string.format('<Pos %d %d>', self:parts())
 end
 
+function Pos:__eq(other)
+    return self.kind == other.kind and self.x == other.x and self.y == other.y
+end
+
 function Pos:hash()
     return bit.lshift(self.x,16) + self.y
 end
@@ -29,27 +33,27 @@ function Pos:parts()
 end
 
 function Pos:moveNorth()
-    return Pos.new{ x = self.x, y = self.y - 1 }
+    return Pos.create(self.x, self.y - 1)
 end
 
 function Pos:moveEast()
-    return Pos.new{ x = self.x + 1, y = self.y }
+    return Pos.create(self.x + 1, self.y)
 end
 
 function Pos:moveSouth()
-    return Pos.new{ x = self.x, y = self.y + 1 }
+    return Pos.create(self.x, self.y + 1)
 end
 
 function Pos:moveWest()
-    return Pos.new{ x = self.x - 1, y = self.y }
+    return Pos.create(self.x - 1, self.y)
 end
 
 function Pos:neighbors()
     return {
-        Pos:new{ x = self.x,   y = self.y-1},
-        Pos:new{ x = self.x+1, y = self.y  },
-        Pos:new{ x = self.x,   y = self.y+1},
-        Pos:new{ x = self.x-1, y = self.y  },
+        Pos.create(self.x,   self.y-1),
+        Pos.create(self.x+1, self.y  ),
+        Pos.create(self.x,   self.y+1),
+        Pos.create(self.x-1, self.y  ),
     }
 end
 
