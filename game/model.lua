@@ -172,15 +172,10 @@ function Model:findPath(a,b,threshold)
 
         -- filter out neighbors that aren't passable
         function(pos)
-            local res = {}
-            for i,n in ipairs(pos:neighbors()) do
+            return filter(pos:neighbors(), function(n)
                 cell = map:get(n)
-                if cell and cell:passable() and cell.light >= threshold then
-                    table.insert(res, n)
-                end
-            end
-
-            return res
+                return cell and cell:passable() and cell.light >= threshold
+            end)
         end,
 
         -- distance from b to a
