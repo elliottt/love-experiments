@@ -82,7 +82,13 @@ end
 Door = Cell:new{ kind = {} }
 
 function Door.create()
-    return Door:new{}
+    return Door:new{
+        open = false
+    }
+end
+
+function Door:passable()
+    return self.open
 end
 
 Map = Grid:new{ kind = {} }
