@@ -25,7 +25,8 @@ function Model.create(opts)
         player = Player:new{
             hp     = 15,
             max_hp = 15,
-            pos    = Pos:new{x = 1, y = 1 }
+            pos    = Pos:new{x = 1, y = 1 },
+            path   = nil,
         },
         mapWidth = opts.mapWidth or 128,
         mapHeight = opts.mapHeight or 128,
@@ -153,14 +154,14 @@ function Model:playerMove(newPos)
     end
 end
 
--- Choose the player's next step using A* towards the exit.
-function Model:searchStep()
+function Model:findPath(a,b)
+    local map = self:map()
+    return search.astar(a,
 
-    local map  = self:map()
-    local path = search.astar(self.player.pos,
-
+        -- hash positions in the visited set
         Pos.hash,
 
+        -- filter out neighbors that aren't passable
         function(pos)
             local res = {}
             for i,n in ipairs(pos:neighbors()) do
@@ -173,14 +174,27 @@ function Model:searchStep()
             return res
         end,
 
+        -- distance from b to a
         function(pos)
-            return map.exit:dist(pos)
+            return b:dist(a)
         end)
+end
 
-    if path ~= nil then
-        return self:playerMove(path[1])
+-- Choose the player's next step using A* towards the exit.
+function Model:searchStep()
+
+    local path
+    if self.player.path then
+        path = self.player.path
     else
-        return
+        path = self:findPath(self.player.pos, self:map().exit)
+        self.player.path = path
+    end
+
+    local move = nil
+    if path and #path > 0 then
+        move = table.remove(path, 1)
+        self:playerMove(move)
     end
 
 end
