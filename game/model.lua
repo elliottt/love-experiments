@@ -125,8 +125,8 @@ function Model:moveEntity(entity, newPos)
     end
 
     local oldCell  = map:get(entity.pos)
-    oldCell.entity = nil
-    cell.entity    = entity
+    oldCell:setEntity(nil)
+    cell:setEntity(entity)
     entity.pos     = newPos
 
     return nil

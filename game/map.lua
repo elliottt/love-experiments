@@ -38,8 +38,23 @@ end
 
 function Cell:setEntity(new)
     local old = self.entity
+    if old then
+        self:exit(old)
+    end
+
     self.entity = new
+    if new then
+        self:enter(new)
+    end
+
     return old
+end
+
+-- called when an entity enters the cell
+function Cell:enter(entity)
+end
+
+function Cell:exit(entity)
 end
 
 function Cell:setProp(new)
@@ -93,6 +108,16 @@ function Door.create()
     return Door:new{
         open = false
     }
+end
+
+function Door:enter()
+    print('open')
+    self.open = true
+end
+
+function Door:exit()
+    print('closed')
+    self.open = false
 end
 
 function Door:blocksLight()
