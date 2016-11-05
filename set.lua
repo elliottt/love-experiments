@@ -38,12 +38,13 @@ function Set:insert(x)
             end
         end
     else
-        print('x', x, hash)
         bucket = {}
         self.elems[hash] = bucket
     end
 
     table.insert(bucket, x)
+
+    return self
 end
 
 function Set:iter()

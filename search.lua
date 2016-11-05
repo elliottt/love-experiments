@@ -53,20 +53,20 @@ function search.astar(start, hash, extend, measure, bound)
         return result
     end
 
-    local visited = Set.create(hash)
+    -- invariant: things that are in the work queue are also in the visited set.
+    local visited = Set.create(hash):insert(start)
     local queue   = { mkNode(nil, start) }
 
     local node
     local children
     local it = 0
     while #queue > 0 do
-        node = table.remove(queue,1)
-        visited:insert(node.state)
-
         it = it + 1
         if it > bound then
-            return nil
+            break
         end
+
+        node = table.remove(queue,1)
 
         if node.distance == 0 then
             return extractPath(node)
@@ -74,6 +74,7 @@ function search.astar(start, hash, extend, measure, bound)
             local added = false
             for _,child in ipairs(extend(node.state)) do
                 if not visited:member(child) then
+                    visited:insert(child)
                     table.insert(queue, mkNode(node, child))
                     added = true
                 end

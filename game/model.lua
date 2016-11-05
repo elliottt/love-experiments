@@ -157,6 +157,12 @@ end
 -- Find a path from a to b, ignoring cells below a given light threshold.
 function Model:findPath(a,b,threshold)
     local map = self:map()
+
+    -- if the target is already invisible, bail out early.
+    if map:get(b).light < threshold then
+        return nil
+    end
+
     return search.astar(a,
 
         -- hash positions in the visited set
@@ -179,7 +185,7 @@ function Model:findPath(a,b,threshold)
 
         -- distance from b to a
         function(pos)
-            return b:dist(a)
+            return b:dist(pos)
         end)
 end
 
