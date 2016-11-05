@@ -18,6 +18,7 @@ function View.create()
         cellHeight = 16,
         offx = 0,
         offy = 0,
+        tintVal = false,
     }
 end
 
