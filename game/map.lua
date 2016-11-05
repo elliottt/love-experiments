@@ -28,6 +28,10 @@ function Cell:vacant()
     return self:passable() and self.entity == nil
 end
 
+function Cell:blocksLight()
+    return false
+end
+
 function Cell:passable()
     return true
 end
@@ -67,6 +71,10 @@ function Wall:passable()
     return false
 end
 
+function Wall:blocksLight()
+    return true
+end
+
 Floor = Cell:new{ kind = {} }
 
 function Floor.create()
@@ -87,8 +95,8 @@ function Door.create()
     }
 end
 
-function Door:passable()
-    return self.open
+function Door:blocksLight()
+    return not self.open
 end
 
 Map = Grid:new{ kind = {} }

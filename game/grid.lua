@@ -91,7 +91,7 @@ function Grid:fov(pos,radius)
         dy = math.cos(rad)
         for cell in self:castRay(pos,dx,dy,radius) do
             cell.light = 1.0
-            if not cell:passable() then
+            if cell:blocksLight() then
                 break
             end
         end

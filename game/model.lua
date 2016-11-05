@@ -147,6 +147,12 @@ function Model:playerMove(newPos)
         return
     end
 
+    -- something in the cell was blocking us
+    if target == nil then
+        cell:interact(self.player, self)
+        return
+    end
+
     -- otherwise, there is an attack to perform
     target.hp = target.hp - 1
     if target.hp == 0 then
