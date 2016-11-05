@@ -159,6 +159,11 @@ end
 function Model:findPath(a,b,threshold)
     local map = self:map()
 
+    -- if the positions are the same, don't bother finding a path
+    if a == b then
+        return nil
+    end
+
     -- if the target is already invisible, bail out early.
     if map:get(b).light < threshold then
         return nil
