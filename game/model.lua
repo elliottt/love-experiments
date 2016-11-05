@@ -142,6 +142,7 @@ function Model:playerMove(newPos)
     -- if the movement is succeessful or invalid, no cell is returned
     local cell, target = self:moveEntity(self.player, newPos)
     if cell == nil then
+        self.player.path = nil
         self:map():fov(self.player.pos, 5)
         return
     end
