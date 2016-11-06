@@ -104,10 +104,10 @@ end
 
 Door = Cell:new{ kind = {} }
 
-function Door.create(locked)
+function Door.create()
     return Door:new{
         open   = false,
-        locked = locked,
+        locked = false,
     }
 end
 
