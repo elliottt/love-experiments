@@ -69,6 +69,7 @@ function View:load()
 
         [Door.kind] = {
             self.dungeonSheet:get(16,14),
+            self.roguelikeSheet:get(33,1),
             self.roguelikeSheet:get(35,1),
         },
 
@@ -110,6 +111,15 @@ function View:load()
         [Chest.kind] = function(chest,tiles)
             if chest.open then
                 tiles[1]:draw(0,0)
+            else
+                tiles[2]:draw(0,0)
+            end
+        end,
+
+        [Door.kind] = function(door,tiles)
+            tiles[1]:draw(0,0)
+            if door.locked then
+                tiles[3]:draw(0,0)
             else
                 tiles[2]:draw(0,0)
             end
@@ -179,7 +189,7 @@ function View:drawCell(cell)
         self:drawTile(cell.items[1])
     end
 
-    if cell.entity then
+    if cell.entity and cell.light >= 0.8 then
         self:drawEntity(cell.entity)
     end
 end

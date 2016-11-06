@@ -193,7 +193,9 @@ function Model:findPath(a,b,threshold)
         -- distance from b to a
         function(pos)
             return b:dist(pos)
-        end)
+        end,
+
+        500)
 end
 
 -- Choose the player's next step using A* towards the exit.
