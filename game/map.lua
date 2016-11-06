@@ -111,12 +111,10 @@ function Door.create()
 end
 
 function Door:enter()
-    print('open')
     self.open = true
 end
 
 function Door:exit()
-    print('closed')
     self.open = false
 end
 
