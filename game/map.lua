@@ -338,7 +338,7 @@ function Map:placeHorizHallway(opts, left, right)
         local x = r1.x + r1.w
         local room = Hallway.create(x, y, r2.x-x, 1)
 
-        self:chooseHallways(opts, room, room.w)
+        self:chooseDoors(opts, room, room.w)
         self:addHall(room)
 
         return room
@@ -356,7 +356,7 @@ function Map:placeVertHallway(opts, top, bottom)
         local y = r1.y + r1.h
         local room = Hallway.create(x, y, 1, r2.y - y)
 
-        self:chooseHallways(opts, room, room.h)
+        self:chooseDoors(opts, room, room.h)
         self:addHall(room)
 
         return room
@@ -367,8 +367,8 @@ function Map:placeVertHallway(opts, top, bottom)
 end
 
 
--- Place hallways at each end of a hallway.
-function Map:chooseHallways(opts, room, len)
+-- Place doors at each end of a hallway.
+function Map:chooseDoors(opts, room, len)
 
     if len >= opts.hallwayDoorLen then
 
