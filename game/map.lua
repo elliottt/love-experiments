@@ -123,6 +123,10 @@ function Door:blocksLight()
     return not self.open
 end
 
+function Door:passable()
+    return not self.locked
+end
+
 Map = Grid:new{ kind = {} }
 
 function Map.defaults(opts)
