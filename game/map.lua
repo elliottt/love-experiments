@@ -215,7 +215,7 @@ function subDivide(opts, iters, region)
                   region.w - opts.minRegionWidth - 1))
 
     if iters >= opts.maxIters or
-        (opts.numEarlyExits > 0 and choose(1,100) <= opts.earlyExit) then
+        (iters >= 1 and opts.numEarlyExits > 0 and choose(1,100) <= opts.earlyExit) then
         opts.numEarlyExits = opts.numEarlyExits - 1
         return region
     end
