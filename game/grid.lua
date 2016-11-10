@@ -133,3 +133,17 @@ function Grid:blit(opts)
         end
     end
 end
+
+-- Pick a random cell that satisfies the predicate, or nil if none was found.
+function Grid:pick(p)
+    for i=1, #self.cells do
+        local x = choose(0,self.w-1)
+        local y = choose(0,self.h-1)
+        local cell = self:get(x,y)
+        if p(cell) then
+            return x, y, cell
+        end
+    end
+
+    return nil
+end

@@ -279,27 +279,23 @@ end
 function Level:enterLevel()
     for i=1,4 - #self.mobs do
         local pos = self:findHidden()
-        self:spawn(pos)
+        if pos then
+            print('spawn', pos)
+            self:spawn(pos)
+        end
     end
 end
 
 function Level:findHidden()
-    return self:findBy(function(cell)
+    local x, y, cell = self.map:pick(function(cell)
         return cell:passable() and cell.light <= 0.8
     end)
-end
 
--- Finds a cell that satisfies the given predicate.
-function Level:findBy(p)
-    for y, row in self.map:rows() do
-        for x, cell in row do
-            if p(cell) then
-                return Pos.create(x,y), cell
-            end
-        end
+    if x ~= nil then
+        return Pos.create(x,y), cell
+    else
+        return nil
     end
-
-    return nil
 end
 
 function Level:spawn(pos)
