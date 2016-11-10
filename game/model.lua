@@ -34,6 +34,7 @@ function Model.create(opts)
         level = 0,
         current = nil,
         seed = opts.seed or genSeed(),
+        turns = 0,
     }
 
     love.math.setRandomSeed(model.seed)
@@ -93,12 +94,23 @@ function Model:enterLevel(depth)
     map:get(pos):setEntity(self.player)
 
     map:fov(pos, 5)
+
+    self.current:enterLevel()
 end
 
 
 function Model:takeStep(playerAction)
     playerAction()
     self.current:moveMobs(self)
+
+    -- increment turn count
+    self.turns = self.turns + 1
+
+    -- consider spawning some new mobs
+    if self.turns % 256 == 0 then
+        self.level:spawn(self.level:findHidden())
+    end
+
 end
 
 
@@ -262,6 +274,32 @@ function Level.create(opts)
         map  = Map.create(opts),
         mobs = {},
     }
+end
+
+function Level:enterLevel()
+    for i=1,4 - #self.mobs do
+        local pos = self:findHidden()
+        self:spawn(pos)
+    end
+end
+
+function Level:findHidden()
+    return self:findBy(function(cell)
+        return cell:passable() and cell.light <= 0.8
+    end)
+end
+
+-- Finds a cell that satisfies the given predicate.
+function Level:findBy(p)
+    for y, row in self.map:rows() do
+        for x, cell in row do
+            if p(cell) then
+                return Pos.create(x,y), cell
+            end
+        end
+    end
+
+    return nil
 end
 
 function Level:spawn(pos)
