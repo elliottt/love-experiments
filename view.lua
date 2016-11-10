@@ -189,7 +189,7 @@ function View:drawCell(cell)
         self:drawTile(cell.items[1])
     end
 
-    if cell.entity and cell.light >= 0.8 then
+    if cell.entity and (cell.light >= 0.8 or self.tintVal ~= false) then
         self:drawEntity(cell.entity)
     end
 end
