@@ -20,7 +20,12 @@ function search.astar(start, hash, extend, measure, bound)
 
     bound = bound or 100
 
+    -- invariant: things that are in the work queue are also in the visited set.
+    local visited = Set.create(hash)
+
     local function mkNode(parent,state)
+        visited:insert(state)
+
         local cost
         if parent then
             cost = parent.cost + 1
@@ -44,18 +49,15 @@ function search.astar(start, hash, extend, measure, bound)
 
     local function extractPath(node)
         result = {}
-        repeat
+        while node ~= nil do
             table.insert(result, 1, node.state)
             node = node.parent
-        until
-            node.parent == nil
+        end
 
         return result
     end
 
-    -- invariant: things that are in the work queue are also in the visited set.
-    local visited = Set.create(hash):insert(start)
-    local queue   = { mkNode(nil, start) }
+    local queue = { mkNode(nil, start) }
 
     local node
     local children
@@ -84,6 +86,59 @@ function search.astar(start, hash, extend, measure, bound)
                 table.sort(queue, comp)
             end
         end
+    end
+
+    return nil
+
+end
+
+
+-- Breadth-first search.
+--
+-- @start  : state
+-- @hash   : state -> int
+-- @extend : state -> [state]
+-- @goal   : state -> bool
+function search.bfs(start, hash, extend, goal)
+
+    local visited = Set.create(hash):insert(start)
+
+    local function mkNode(parent, state)
+        visited:insert(state)
+
+        return {
+            parent = parent,
+            state = state,
+        }
+    end
+
+    local function extractPath(node)
+        path = {}
+        while node ~= nil do
+            table.insert(path, 1, node.state)
+            node = node.parent
+        end
+
+        return path
+    end
+
+    local node
+    local queue = { mkNode(nil, start) }
+
+    while #queue > 0 do
+
+        node = table.remove(queue, 1)
+
+        if goal(node.state) then
+            return extractPath(node)
+        else
+            for _, child in ipairs(extend(node.state)) do
+                if not visited:member(child) then
+                    table.insert(queue, mkNode(node, child))
+                end
+            end
+        end
+
     end
 
     return nil
