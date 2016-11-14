@@ -62,6 +62,7 @@ function search.astar(start, hash, extend, measure, bound)
     local node
     local children
     local it = 0
+    local added
     while #queue > 0 do
         it = it + 1
         if it > bound then
@@ -73,10 +74,9 @@ function search.astar(start, hash, extend, measure, bound)
         if node.distance == 0 then
             return extractPath(node)
         else
-            local added = false
+            added = false
             for _,child in ipairs(extend(node.state)) do
                 if not visited:member(child) then
-                    visited:insert(child)
                     table.insert(queue, mkNode(node, child))
                     added = true
                 end

@@ -213,19 +213,18 @@ end
 -- Choose the player's next step using A* towards the exit.
 function Model:searchStep()
 
-    local path
-    if self.player.path then
-        path = self.player.path
-    else
+    if self.player.path == nil then
         -- the player is only allowed to find paths that involve parts of the
         -- level that they have seen before.
-        path = self:findPath(self.player.pos, self:map().exit, 0.5)
-        self.player.path = path
+        self.player.path = self:findPath(self.player.pos, self:map().exit, 0.5)
+
+        -- the path includes the current position, so drop the first move
+        table.remove(self.player.path, 1)
     end
 
     local move = nil
-    if path and #path > 0 then
-        move = table.remove(path, 1)
+    if self.player.path and #self.player.path > 0 then
+        move = table.remove(self.player.path, 1)
         self:playerMove(move)
     end
 
