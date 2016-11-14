@@ -110,7 +110,7 @@ function Grid:castRay(pos,dx,dy,len)
             i = i + 1
             x = x + dx
             y = y + dy
-            return self:get(math.floor(x), math.floor(y))
+            return self:get(math.modf(x), math.modf(y))
         else
             return nil
         end
