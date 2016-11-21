@@ -223,7 +223,9 @@ function Model:searchStep()
         self.player.path = self:findPath(self.player.pos, self:map().exit, 0.5)
 
         -- the path includes the current position, so drop the first move
-        table.remove(self.player.path, 1)
+        if self.player.path then
+            table.remove(self.player.path, 1)
+        end
     end
 
     local move = nil
@@ -295,7 +297,7 @@ function Level:lightFov(pos, radius)
 
     for _, cell in ipairs(map.cells) do
         if cell.light > 0 then
-            cell.light = 0.5
+            cell.light = 0.7
         end
     end
 
