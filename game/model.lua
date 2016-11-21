@@ -279,7 +279,6 @@ function Level:enterLevel()
     for i=1,4 - #self.mobs do
         local pos = self:findHidden()
         if pos then
-            print('spawn', pos)
             self:spawn(pos)
         end
     end
