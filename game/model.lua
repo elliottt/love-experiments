@@ -108,7 +108,7 @@ function Model:takeStep(playerAction)
 
     -- consider spawning some new mobs
     if self.turns % 256 == 0 then
-        self.level:spawn(self.level:findHidden())
+        self.current:spawn(self.current:findHidden())
     end
 
 end
