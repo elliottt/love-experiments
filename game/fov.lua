@@ -16,7 +16,6 @@ local function bresenham(x0, y0, x1, y1)
         end
     end
 
-
     local deltax = x1 - x0
     local deltay = math.floor(math.abs(y1 - y0))
     local err    = math.floor(math.abs(deltax / 2))
@@ -62,17 +61,16 @@ local function fov(x0,y0,radius)
 
     local xl, xr = x0 - r, x0 + r
     local yt, yb = y0 - r, y0 + r
-    local x = xl
-    local y = yt
+    local x,  y  = xl, yt
 
     local state, top, right, bottom, left
+    local tx, ty
 
     function top()
-        local tx = x
-
         if x < xr then
-            x = x + 1
-            return bresenham(x0,y0,tx,y)
+            tx = x
+            x  = x + 1
+            return bresenham(x0,y0,tx,y), tx, y
         else
             state = right
             return right()
@@ -80,10 +78,10 @@ local function fov(x0,y0,radius)
     end
 
     function right()
-        local ty = y
         if y < yb then
-            y = y + 1
-            return bresenham(x0, y0, x, ty)
+            ty = y
+            y  = y + 1
+            return bresenham(x0, y0, x, ty), x, ty
         else
             state = bottom
             return bottom()
@@ -91,11 +89,10 @@ local function fov(x0,y0,radius)
     end
 
     function bottom()
-        local tx = x
-
         if x > xl then
-            x = x - 1
-            return bresenham(x0, y0, tx, y)
+            tx = x
+            x  = x - 1
+            return bresenham(x0, y0, tx, y), tx, y
         else
             state = left
             return left()
@@ -103,11 +100,10 @@ local function fov(x0,y0,radius)
     end
 
     function left()
-        local ty = y
-
         if y > yt then
-            y = y - 1
-            return bresenham(x0, y0, x, ty)
+            ty = y
+            y  = y - 1
+            return bresenham(x0, y0, x, ty), x, ty
         else
             return nil
         end
