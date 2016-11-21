@@ -20,8 +20,14 @@ function Pos:hash()
     return bit.lshift(self.x,16) + self.y
 end
 
+function dist(x,y,a,b)
+    local l = x - a
+    local r = y - b
+    return math.sqrt(l * l + r * r)
+end
+
 function Pos:dist(other)
-    return math.sqrt((self.x - other.x) ^ 2 + (self.y - other.y)^2)
+    return dist(self.x, self.y, other.x, other.y)
 end
 
 function Pos.create(x,y)
