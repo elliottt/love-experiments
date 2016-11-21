@@ -213,6 +213,10 @@ end
 -- Choose the player's next step using A* towards the exit.
 function Model:searchStep()
 
+    if self.player.pos == self:map().exit then
+        return
+    end
+
     if self.player.path == nil then
         -- the player is only allowed to find paths that involve parts of the
         -- level that they have seen before.
@@ -291,7 +295,7 @@ function Level:lightFov(pos, radius)
 
     for _, cell in ipairs(map.cells) do
         if cell.light > 0 then
-            cell.light = 0.8
+            cell.light = 0.5
         end
     end
 
