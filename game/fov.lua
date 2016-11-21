@@ -16,9 +16,9 @@ local function bresenham(x0, y0, x1, y1)
         end
     end
 
-    local deltax = x1 - x0
+    local deltax = math.abs(x1 - x0)
     local deltay = math.floor(math.abs(y1 - y0))
-    local err    = math.floor(math.abs(deltax / 2))
+    local err    = math.floor(deltax / 2)
 
     local ystep
     if y0 < y1 then
@@ -47,8 +47,8 @@ local function bresenham(x0, y0, x1, y1)
         x   = x + xstep
         err = err - deltay
         if err < 0 then
-            y   = y + ystep
-            err = err + deltax
+            y   = y   + ystep
+            err = err + math.abs(deltax)
         end
 
         return mkPoint(rx,ry)
