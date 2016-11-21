@@ -69,6 +69,7 @@ function View:load()
 
         [Door.kind] = {
             self.dungeonSheet:get(16,14),
+            self.roguelikeSheet:get(37,2),
             self.roguelikeSheet:get(33,1),
             self.roguelikeSheet:get(35,1),
         },
@@ -118,10 +119,12 @@ function View:load()
 
         [Door.kind] = function(door,tiles)
             tiles[1]:draw(0,0)
-            if door.locked then
-                tiles[3]:draw(0,0)
-            else
+            if door.open then
                 tiles[2]:draw(0,0)
+            elseif door.locked then
+                tiles[4]:draw(0,0)
+            else
+                tiles[3]:draw(0,0)
             end
         end,
     }
