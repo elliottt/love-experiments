@@ -1,5 +1,7 @@
 
 require 'game.pos'
+require 'utils'
+fov = require 'game.fov'
 
 Grid = { kind = {} }
 
@@ -79,42 +81,7 @@ function Grid:rows()
 end
 
 function Grid:fov(pos,radius)
-    for _,cell in ipairs(self.cells) do
-        if cell.light > 0 then
-            cell.light = 0.5
-        end
-    end
-
-    local dx, dy = 0, 0
-    for rad=0,2 * math.pi,0.1 do
-        dx = math.sin(rad)
-        dy = math.cos(rad)
-        for cell in self:castRay(pos,dx,dy,radius) do
-            cell.light = 1.0
-            if cell:blocksLight() then
-                break
-            end
-        end
-    end
-end
-
-function Grid:castRay(pos,dx,dy,len)
-    local x, y = pos.x, pos.y
-    local i = 0
-
-    x = x - dx
-    y = y - dy
-
-    return function()
-        if i < len then
-            i = i + 1
-            x = x + dx
-            y = y + dy
-            return self:get(math.modf(x), math.modf(y))
-        else
-            return nil
-        end
-    end
+    return fov.fov(pos.x, pos.y, radius)
 end
 
 function Grid:blit(opts)

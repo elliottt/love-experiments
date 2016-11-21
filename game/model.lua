@@ -93,7 +93,7 @@ function Model:enterLevel(depth)
     self.player.pos = pos
     map:get(pos):setEntity(self.player)
 
-    map:fov(pos, 5)
+    self.current:lightFov(pos)
 
     self.current:enterLevel()
 end
@@ -155,7 +155,7 @@ function Model:playerMove(newPos)
     local cell, target = self:moveEntity(self.player, newPos)
     if cell == nil then
         self.player.path = nil
-        self:map():fov(self.player.pos, 5)
+        self.current:lightFov(self.player.pos)
         return
     end
 
@@ -283,6 +283,31 @@ function Level:enterLevel()
             self:spawn(pos)
         end
     end
+end
+
+function Level:lightFov(pos)
+    local map = self.map
+
+    for _, cell in ipairs(map.cells) do
+        if cell.light > 0 then
+            cell.light = 0.8
+        end
+    end
+
+    for ray in map:fov(pos, 6) do
+        for x,y in ray do
+            local cell = map:get(x,y)
+            if cell == nil then
+                break
+            elseif cell:blocksLight() then
+                cell.light = 1.0
+                break
+            else
+                cell.light = 1.0
+            end
+        end
+    end
+
 end
 
 function Level:findHidden()

@@ -34,3 +34,17 @@ function filter(t, p)
 
     return res
 end
+
+function math.round(n)
+    local n, f = math.modf(n)
+
+    if f > 0.5 then
+        return n + 1
+    elseif f < 0.5 then
+        return n
+    elseif n % 2 == 0 then
+        return n
+    else
+        return n + 1
+    end
+end

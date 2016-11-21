@@ -62,3 +62,12 @@ function Pos:adjust(x,y)
     self.y = self.y + y
     return self
 end
+
+function Pos.slope(a,b)
+    local denom = b.x - a.x
+    if denom == 0 then
+        return 0
+    else
+        return (b.y - a.y) / denom
+    end
+end

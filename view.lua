@@ -108,11 +108,11 @@ function View:load()
     }
 
     self.special = {
-        [Chest.kind] = function(chest,tiles)
+        [Chest.kind] = function(chest,tiles,x,y)
             if chest.open then
-                tiles[1]:draw(0,0)
+                tiles[1]:draw(x,y)
             else
-                tiles[2]:draw(0,0)
+                tiles[2]:draw(x,y)
             end
         end,
 
@@ -178,15 +178,15 @@ function View:draw(model)
 end
 
 function View:drawCell(cell)
-    self:drawTile(cell)
+    self:drawTile(cell,0,0)
 
     if cell.prop then
-        self:drawTile(cell.prop)
+        self:drawTile(cell.prop,0,0)
     end
 
     -- always just draw the top item, if it exists
     if cell.items[1] then
-        self:drawTile(cell.items[1])
+        self:drawTile(cell.items[1],0,0)
     end
 
     if cell.entity and (cell.light >= 0.8 or self.tintVal ~= false) then
@@ -194,18 +194,18 @@ function View:drawCell(cell)
     end
 end
 
-function View:drawTile(thing)
+function View:drawTile(thing,x,y)
     local special = self.special[thing.kind]
     local tiles   = self.tiles[thing.kind]
     if special ~= nil then
-        special(thing,tiles)
+        special(thing,tiles,x,y)
     elseif tiles ~= nil then
         for i,tile in ipairs(tiles) do
-            tile:draw(0,0)
+            tile:draw(x,y)
         end
     end
 end
 
 function View:drawEntity(entity)
-    self:drawTile(entity)
+    self:drawTile(entity,0,-8)
 end
