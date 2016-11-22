@@ -301,12 +301,10 @@ function Level:lightFov(pos, radius)
         end
     end
 
-    for ray in map:fov(pos, radius) do
+    for ray, x1, y1, step in map:fov(pos, radius) do
         for x,y in ray do
             local cell = map:get(x,y)
             if cell == nil then
-                break
-            elseif dist(pos.x, pos.y, x, y) > radius then
                 break
             elseif cell:blocksLight() then
                 cell.light = 1.0

@@ -1,6 +1,6 @@
 
 -- Iterator for points on the line between (x0,y0) and (x1,y1).
-local function bresenham(x0, y0, x1, y1)
+local function bresenham(x0, y0, x1, y1, radius, step)
 
     local mkPoint
     if math.abs(y1 - y0) > math.abs(x1 - x0) then
@@ -13,6 +13,21 @@ local function bresenham(x0, y0, x1, y1)
     else
         mkPoint = function(x,y)
             return x,y
+        end
+    end
+
+    -- if a radius and step were given, modify mkPoint to keep track of how far
+    -- along the line we are.
+    if radius ~= nil and step ~= nil then
+        local oldMkPoint = mkPoint
+        local inc = 0
+        mkPoint = function(x,y)
+            if inc > radius then
+                return nil
+            else
+                inc = inc + step
+                return oldMkPoint(x,y)
+            end
         end
     end
 
@@ -66,11 +81,29 @@ local function fov(x0,y0,radius)
     local state, top, right, bottom, left
     local tx, ty
 
+    function ret(a,b)
+        local step
+
+        local denom = b - y0
+        if denom == 0 then
+            step = 1
+        else
+            local slope = math.abs ((a - x0) / denom)
+            if slope > 1 then
+                step = 1 + (1 / slope) * 0.42
+            else
+                step = 1 + slope * 0.42
+            end
+        end
+
+        return bresenham(x0,y0,a,b,radius,step), a, b, step
+    end
+
     function top()
         if x < xr then
             tx = x
             x  = x + 1
-            return bresenham(x0,y0,tx,y), tx, y
+            return ret(tx,y)
         else
             state = right
             return right()
@@ -81,7 +114,7 @@ local function fov(x0,y0,radius)
         if y < yb then
             ty = y
             y  = y + 1
-            return bresenham(x0, y0, x, ty), x, ty
+            return ret(x,ty)
         else
             state = bottom
             return bottom()
@@ -92,7 +125,7 @@ local function fov(x0,y0,radius)
         if x > xl then
             tx = x
             x  = x - 1
-            return bresenham(x0, y0, tx, y), tx, y
+            return ret(tx,y)
         else
             state = left
             return left()
@@ -103,7 +136,7 @@ local function fov(x0,y0,radius)
         if y > yt then
             ty = y
             y  = y - 1
-            return bresenham(x0, y0, x, ty), x, ty
+            return ret(x,ty)
         else
             return nil
         end

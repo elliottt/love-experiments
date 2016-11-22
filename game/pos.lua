@@ -26,6 +26,15 @@ function dist(x,y,a,b)
     return math.sqrt(l * l + r * r)
 end
 
+function slope(x,y,a,b)
+    local denom = a - x
+    if denom == 0 then
+        return nil
+    else
+        return (b - y) / denom
+    end
+end
+
 function Pos:dist(other)
     return dist(self.x, self.y, other.x, other.y)
 end
@@ -70,10 +79,10 @@ function Pos:adjust(x,y)
 end
 
 function Pos.slope(a,b)
-    local denom = b.x - a.x
-    if denom == 0 then
+    local slope = slope(a.x,a.y,b.x,b.y)
+    if slope == nil then
         return 0
     else
-        return (b.y - a.y) / denom
+        return slope
     end
 end
