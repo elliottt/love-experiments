@@ -146,8 +146,8 @@ end
 
 -- Apply a function to the player's position, likely one of the Pos:move*
 -- functions.
-function Model:movePlayer(by)
-    return self:playerMove(by(self.player.pos))
+function Model:movePlayer(direction)
+    return self:playerMove(direction(self.player.pos))
 end
 
 function Model:playerMove(newPos)
@@ -196,10 +196,17 @@ function Model:findPath(a,b,threshold)
 
         -- filter out neighbors that aren't passable
         function(pos)
-            return filter(pos:neighbors(), function(n)
-                cell = map:get(n)
-                return cell and cell:passable() and cell.light >= threshold
-            end)
+            local others = {}
+            local p
+            for _, dir in next, Direction.all do
+                p    = dir(pos)
+                cell = map:get(p)
+                if cell and cell:passable() and cell.light >= threshold then
+                    table.insert(others, p)
+                end
+            end
+
+            return others
         end,
 
         -- distance from b to a

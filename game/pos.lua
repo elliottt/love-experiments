@@ -49,10 +49,14 @@ end
 
 function neighbors(x,y)
     return {
-        Pos.create(x, y-1),
-        Pos.create(x+1, y),
-        Pos.create(x, y+1),
-        Pos.create(x-1, y),
+        North(x,y),
+        NorthEast(x,y),
+        East(x,y),
+        SouthEast(x,y),
+        South(x,y),
+        SouthWest(x,y),
+        West(x,y),
+        NorthWest(x,y),
     }
 end
 
@@ -85,8 +89,12 @@ function Direction:new(o)
     return o
 end
 
-function Direction:__call(pos)
-    return Pos.create(pos.x + self.dx, pos.y + self.dy)
+function Direction:__call(pos,y)
+    if y ~= nil then
+        return Pos.create(pos + self.dx, y + self.dy)
+    else
+        return Pos.create(pos.x + self.dx, pos.y + self.dy)
+    end
 end
 
 function Direction:__tostring()
@@ -102,6 +110,19 @@ SouthWest = Direction:new{ name='SouthWest', kind={}, dx=-1, dy= 1, cost=1.42 }
 West      = Direction:new{ name='West',      kind={}, dx=-1, dy= 0, cost=1    }
 NorthWest = Direction:new{ name='NorthWest', kind={}, dx=-1, dy=-1, cost=1.42 }
 
+Direction.all = {
+    North,
+    NorthEast,
+    East,
+    SouthEast,
+    South,
+    SouthWest,
+    West,
+    NorthWest,
+}
+
+-- Perpendicular cardinal directions, and their compmosition. This is used for
+-- producing the simple subgoal graph, allowing for faster path planning.
 Direction.perpendicular = {
     { North, East,  NorthEast },
     { East,  South, SouthEast },
