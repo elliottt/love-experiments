@@ -591,14 +591,16 @@ end
 
 function Planner:clearance(pos, dir)
     local i = 0
+    local tmp
     while true do
-        pos = dir(pos)
+        tmp = dir(pos)
 
-        if not self.map:passable(pos) then
+        if not self.map:passable(tmp) then
             return i, pos
         end
 
-        i = i + 1
+        pos = tmp
+        i   = i + 1
 
         if self:isSubgoal(pos) then
             return i, pos
@@ -607,19 +609,15 @@ function Planner:clearance(pos, dir)
 end
 
 function Planner:getDirectHReachable(pos)
+    local S = Set.create(Pos.hash)
 
     local clearances = {}
     for _, d in next, Direction.all do
         local i, p = self:clearance(pos, d)
         clearances[d] = { value=i, pos=p }
-    end
 
-    local S = Set.create(Pos.hash)
-
-    local c
-    for d, c in next, clearances do
-        if self:isSubgoal(c.pos) then
-            S:insert(c.pos)
+        if self:isSubgoal(p) then
+            S:insert(p)
         end
     end
 
