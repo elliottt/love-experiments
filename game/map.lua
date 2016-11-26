@@ -573,7 +573,7 @@ function Planner.create(map)
 
     for pos in verts:iter() do
         for s in plan:getDirectHReachable(pos):iter() do
-            plan.graph:newEdge(pos, s)
+            plan.graph:newEdge(pos, s, true)
         end
     end
 

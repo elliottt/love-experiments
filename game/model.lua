@@ -48,6 +48,10 @@ function Model:map()
     return self.current.map
 end
 
+function Model:planner()
+    return self.current.planner
+end
+
 -- Spawn a mob, dependent on current level.
 function Model:spawn(pos)
     return self.current:spawn(pos)

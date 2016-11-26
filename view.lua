@@ -14,8 +14,8 @@ function View.create()
     return View:new{
         charSheet = nil,
         playerSprite = nil,
-        cellWidth = 16,
-        cellHeight = 16,
+        cellWidth = 16,  cellWidth2 = 8,
+        cellHeight = 16, cellHeight2 = 8,
         offx = 0,
         offy = 0,
         tintVal = false,
@@ -106,11 +106,6 @@ function View:load()
         [Corpse.kind] = {
             self.dungeonSheet:get(2,2),
         },
-
-        [Direction.kind] = {
-            self.dungeonSheet:get(16,14),
-            self.roguelikeSheet:get(19,0),
-        },
     }
 
     self.special = {
@@ -164,6 +159,14 @@ function View:toggleTint()
     end
 end
 
+function View:gridToScreen(pos, y)
+    if y ~= nil then
+        return self.cellWidth * pos, self.cellHeight * y
+    else
+        return self.cellWidth * pos.x, self.cellHeight * pos.y
+    end
+end
+
 function View:draw(model)
 
     self:center(model, 1)
@@ -173,7 +176,7 @@ function View:draw(model)
     for row,elems in model:map():rows() do
         for col,cell in elems do
             love.graphics.push('transform')
-            love.graphics.translate(self.cellWidth * col, self.cellHeight * row)
+            love.graphics.translate(self:gridToScreen(col, row))
 
             self.tint:send('tint', self.tintVal or cell.light)
             self:drawCell(cell)
@@ -183,14 +186,14 @@ function View:draw(model)
     end
     love.graphics.setShader()
 
+    if self.tintVal ~= false then
+        self:drawPlanner(model:planner())
+    end
+
 end
 
 function View:drawCell(cell)
-    if cell.subgoal then
-        self:drawTile(Direction, 0, 0)
-    else
-        self:drawTile(cell,0,0)
-    end
+    self:drawTile(cell,0,0)
 
     if cell.prop then
         self:drawTile(cell.prop,0,0)
@@ -220,4 +223,19 @@ end
 
 function View:drawEntity(entity)
     self:drawTile(entity,0,-8)
+end
+
+function View:drawPlanner(planner)
+    local x1,y1,x2,y2
+    for _, a in ipairs(planner.graph.nodes) do
+        x1, y1 = self:gridToScreen(a.value)
+        x1 = x1 + self.cellWidth2
+        y1 = y1 + self.cellHeight2
+        for _, b in pairs(a.edges) do
+            x2, y2 = self:gridToScreen(b.value)
+            x2 = x2 + self.cellWidth2
+            y2 = y2 + self.cellHeight2
+            love.graphics.line(x1, y1, x2, y2)
+        end
+    end
 end
