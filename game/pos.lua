@@ -16,6 +16,10 @@ function Pos:__eq(other)
     return self.kind == other.kind and self.x == other.x and self.y == other.y
 end
 
+function Pos:clone()
+    return Pos.create(self.x, self.y)
+end
+
 function Pos:hash()
     return bit.lshift(self.x,16) + self.y
 end
@@ -102,13 +106,18 @@ function Direction:__tostring()
 end
 
 North     = Direction:new{ name='North',     kind={}, dx= 0, dy=-1, cost=1    }
-NorthEast = Direction:new{ name='NorthEast', kind={}, dx= 1, dy=-1, cost=1.42 }
 East      = Direction:new{ name='East',      kind={}, dx= 1, dy= 0, cost=1    }
-SouthEast = Direction:new{ name='SouthEast', kind={}, dx= 1, dy= 1, cost=1.42 }
 South     = Direction:new{ name='South',     kind={}, dx= 0, dy= 1, cost=1    }
-SouthWest = Direction:new{ name='SouthWest', kind={}, dx=-1, dy= 1, cost=1.42 }
 West      = Direction:new{ name='West',      kind={}, dx=-1, dy= 0, cost=1    }
-NorthWest = Direction:new{ name='NorthWest', kind={}, dx=-1, dy=-1, cost=1.42 }
+
+NorthEast = Direction:new{ name='NorthEast', kind={}, dx= 1, dy=-1, cost=1.42,
+    cardinals={ North, East } }
+SouthEast = Direction:new{ name='SouthEast', kind={}, dx= 1, dy= 1, cost=1.42,
+    cardinals={ South, East } }
+SouthWest = Direction:new{ name='SouthWest', kind={}, dx=-1, dy= 1, cost=1.42,
+    cardinals={ South, West } }
+NorthWest = Direction:new{ name='NorthWest', kind={}, dx=-1, dy=-1, cost=1.42,
+    cardinals={ North, West } }
 
 Direction.all = {
     North,
@@ -128,4 +137,11 @@ Direction.perpendicular = {
     { East,  South, SouthEast },
     { South, West,  SouthWest },
     { West,  North, NorthWest },
+}
+
+Direction.diagonal = {
+    NorthEast,
+    SouthEast,
+    SouthWest,
+    NorthWest,
 }

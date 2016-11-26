@@ -282,9 +282,11 @@ function Level:new(o)
 end
 
 function Level.create(opts)
+    local map = Map.create(opts)
     return Level:new{
-        map  = Map.create(opts),
-        mobs = {},
+        map     = map,
+        planner = Planner.create(map),
+        mobs    = {},
     }
 end
 

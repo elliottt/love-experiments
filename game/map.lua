@@ -6,6 +6,8 @@ require 'game.item'
 require 'game.bsp'
 require 'game.grid'
 require 'rand'
+require 'graph'
+require 'set'
 
 
 Cell = {
@@ -434,6 +436,11 @@ function Map:validDoor(x,y)
     return true
 end
 
+function Map:passable(x,y)
+    local cell = self:get(x,y)
+    return cell ~= nil and cell:passable()
+end
+
 
 RectRoom = Grid:new{ kind = {} }
 
@@ -521,4 +528,133 @@ end
 
 function Interval:__tostring()
     return string.format('<Interval %d %d>', self.l, self.h)
+end
+
+
+
+Planner = { kind = {} }
+
+function Planner:new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function Planner.create(map)
+    local verts = Set.create(Pos.hash)
+    local other1, other2
+
+    -- for all blocked cells, find the vertices of the subgoal graph.
+    local pos, a, b
+    for y, row in map:rows() do
+        for x, cell in row do
+            if cell:passable() then
+                pos = Pos.create(x,y)
+                for _, c in next, Direction.perpendicular do
+                    cell = map:get(c[3](pos))
+                    if cell and not cell:passable() then
+                        a = map:get(c[1](pos))
+                        b = map:get(c[2](pos))
+                        if a and b and a:passable() and b:passable() then
+                            verts:insert(pos)
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    local plan = Planner:new{
+        verts=verts,
+        map=map,
+        graph=Graph:create(),
+    }
+
+    for pos in verts:iter() do
+        for s in plan:getDirectHReachable(pos):iter() do
+            plan.graph:newEdge(pos, s)
+        end
+    end
+
+    for _, node in next, plan.graph.nodes do
+        map:get(node.value).subgoal = true
+    end
+
+    return plan
+
+end
+
+function Planner:isSubgoal(pos)
+    return self.verts:member(pos)
+end
+
+function Planner:clearance(pos, dir)
+    local i = 0
+    while true do
+        pos = dir(pos)
+
+        if not self.map:passable(pos) then
+            return i, pos
+        end
+
+        i = i + 1
+
+        if self:isSubgoal(pos) then
+            return i, pos
+        end
+    end
+end
+
+function Planner:getDirectHReachable(pos)
+
+    local clearances = {}
+    for _, d in next, Direction.all do
+        local i, p = self:clearance(pos, d)
+        clearances[d] = { value=i, pos=p }
+    end
+
+    local S = Set.create(Pos.hash)
+
+    local c
+    for d, c in next, clearances do
+        if self:isSubgoal(c.pos) then
+            S:insert(c.pos)
+        end
+    end
+
+    local outer, inner, max, diag, s, j, e
+    for _, d in next, Direction.diagonal do
+        outer = clearances[d]
+        diag  = outer.value
+        if self:isSubgoal(outer.pos) then
+            diag = diag - 1
+        end
+
+        for _, c in next, d.cardinals do
+            inner = clearances[c]
+
+            max = inner.value
+            if self:isSubgoal(inner.pos) then
+                max = max - 1
+            end
+
+            s = pos
+            for i=1,diag do
+                s = d(pos)
+                j, e = self:clearance(s, c)
+                if j <= max and self:isSubgoal(e) then
+                    S:insert(e)
+                    j = j - 1
+                end
+
+                if j < max then
+                    max = j
+                end
+            end
+        end
+    end
+
+    return S
+
 end

@@ -20,14 +20,23 @@ end
 --
 -- @value The value of the node
 function Graph:newNode(value)
-    table.insert(self.nodes, {
-        value=value,
-        edges={},
-    })
-
-    self.nodeIds[value] = #self.nodes
-
+    self:getNode(value)
     return self
+end
+
+function Graph:getNode(value)
+    local id = self.nodeIds[value]
+    if id == nil then
+        table.insert(self.nodes, {
+            value=value,
+            edges={},
+        })
+
+        id = #self.nodes
+        self.nodeIds[value] = id
+    end
+
+    return id
 end
 
 -- Create an edge between two nodes, by node id.
@@ -36,8 +45,8 @@ end
 -- @b Id of the second node
 -- @undirected true when the edge is undirected
 function Graph:newEdge(a,b,undirected)
-    local aId   = self.nodeIds[a]
-    local bId   = self.nodeIds[b]
+    local aId   = self:getNode(a)
+    local bId   = self:getNode(b)
     local aNode = self.nodes[aId]
     local bNode = self.nodes[bId]
     aNode.edges[bId] = bNode

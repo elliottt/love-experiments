@@ -105,7 +105,12 @@ function View:load()
 
         [Corpse.kind] = {
             self.dungeonSheet:get(2,2),
-        }
+        },
+
+        [Direction.kind] = {
+            self.dungeonSheet:get(16,14),
+            self.roguelikeSheet:get(19,0),
+        },
     }
 
     self.special = {
@@ -181,7 +186,11 @@ function View:draw(model)
 end
 
 function View:drawCell(cell)
-    self:drawTile(cell,0,0)
+    if cell.subgoal then
+        self:drawTile(Direction, 0, 0)
+    else
+        self:drawTile(cell,0,0)
+    end
 
     if cell.prop then
         self:drawTile(cell.prop,0,0)
