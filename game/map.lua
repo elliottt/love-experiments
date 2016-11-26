@@ -641,7 +641,7 @@ function Planner:getDirectHReachable(pos)
 
             s = pos
             for i=1,diag do
-                s = d(pos)
+                s = d(s)
                 j, e = self:clearance(s, c)
                 if j <= max and self:isSubgoal(e) then
                     S:insert(e)
