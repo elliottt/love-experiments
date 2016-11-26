@@ -47,29 +47,17 @@ function Pos:parts()
     return self.x, self.y
 end
 
-function Pos:moveNorth()
-    return Pos.create(self.x, self.y - 1)
-end
-
-function Pos:moveEast()
-    return Pos.create(self.x + 1, self.y)
-end
-
-function Pos:moveSouth()
-    return Pos.create(self.x, self.y + 1)
-end
-
-function Pos:moveWest()
-    return Pos.create(self.x - 1, self.y)
+function neighbors(x,y)
+    return {
+        Pos.create(x, y-1),
+        Pos.create(x+1, y),
+        Pos.create(x, y+1),
+        Pos.create(x-1, y),
+    }
 end
 
 function Pos:neighbors()
-    return {
-        Pos.create(self.x,   self.y-1),
-        Pos.create(self.x+1, self.y  ),
-        Pos.create(self.x,   self.y+1),
-        Pos.create(self.x-1, self.y  ),
-    }
+    return neighbors(self.x, self.y)
 end
 
 function Pos:adjust(x,y)
@@ -86,3 +74,37 @@ function Pos.slope(a,b)
         return slope
     end
 end
+
+
+Direction = { kind = {}, dx=0, dy=0 }
+
+function Direction:new(o)
+    o = o or {}
+    setmetatable(o, self)
+    self.__index = self
+    return o
+end
+
+function Direction:__call(pos)
+    return Pos.create(pos.x + self.dx, pos.y + self.dy)
+end
+
+function Direction:__tostring()
+    return self.name
+end
+
+North     = Direction:new{ name='North',     kind={}, dx= 0, dy=-1, cost=1    }
+NorthEast = Direction:new{ name='NorthEast', kind={}, dx= 1, dy=-1, cost=1.42 }
+East      = Direction:new{ name='East',      kind={}, dx= 1, dy= 0, cost=1    }
+SouthEast = Direction:new{ name='SouthEast', kind={}, dx= 1, dy= 1, cost=1.42 }
+South     = Direction:new{ name='South',     kind={}, dx= 0, dy= 1, cost=1    }
+SouthWest = Direction:new{ name='SouthWest', kind={}, dx=-1, dy= 1, cost=1.42 }
+West      = Direction:new{ name='West',      kind={}, dx=-1, dy= 0, cost=1    }
+NorthWest = Direction:new{ name='NorthWest', kind={}, dx=-1, dy=-1, cost=1.42 }
+
+Direction.perpendicular = {
+    { North, East,  NorthEast },
+    { East,  South, SouthEast },
+    { South, West,  SouthWest },
+    { West,  North, NorthWest },
+}

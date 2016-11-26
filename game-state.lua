@@ -116,25 +116,49 @@ PlayingState = GameState:new{
 
         h = function(self)
             self.model:takeStep(function()
-                self.model:movePlayer(Pos.moveWest)
+                self.model:movePlayer(West)
+            end)
+        end,
+
+        u = function(self)
+            self.model:takeStep(function()
+                self.model:movePlayer(NorthEast)
+            end)
+        end,
+
+        y = function(self)
+            self.model:takeStep(function()
+                self.model:movePlayer(NorthWest)
+            end)
+        end,
+
+        b = function(self)
+            self.model:takeStep(function()
+                self.model:movePlayer(SouthWest)
+            end)
+        end,
+
+        n = function(self)
+            self.model:takeStep(function()
+                self.model:movePlayer(SouthEast)
             end)
         end,
 
         j = function(self)
             self.model:takeStep(function()
-                self.model:movePlayer(Pos.moveSouth)
+                self.model:movePlayer(South)
             end)
         end,
 
         k = function(self)
             self.model:takeStep(function()
-                self.model:movePlayer(Pos.moveNorth)
+                self.model:movePlayer(North)
             end)
         end,
 
         l = function(self)
             self.model:takeStep(function()
-                self.model:movePlayer(Pos.moveEast)
+                self.model:movePlayer(East)
             end)
         end,
 
