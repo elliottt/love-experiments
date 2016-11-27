@@ -12,7 +12,6 @@ function Graph.create()
     return Graph:new{
         nodeIds = {},
         nodes   = {},
-        edges   = {},
     }
 end
 
@@ -24,6 +23,7 @@ function Graph:newNode(value)
     return self
 end
 
+-- Return the internal ID for the node value given.
 function Graph:getNode(value)
     local id = self.nodeIds[value]
     if id == nil then
@@ -44,14 +44,21 @@ end
 -- @a Id of the first node
 -- @b Id of the second node
 -- @undirected true when the edge is undirected
-function Graph:newEdge(a,b,undirected)
+function Graph:newEdge(a,b,weight,undirected)
     local aId   = self:getNode(a)
     local bId   = self:getNode(b)
     local aNode = self.nodes[aId]
     local bNode = self.nodes[bId]
-    aNode.edges[bId] = bNode
+    aNode.edges[bId] = {
+        node=bNode,
+        weight=weight,
+    }
+
     if undirected then
-        bNode.edges[aId] = aNode
+        bNode.edges[aId] = {
+            node=aNode,
+            weight=weight,
+        }
     end
 
     return self
@@ -80,7 +87,7 @@ function Graph:bfs(start)
         for id, other in pairs(node.edges) do
             if visited[id] ~= true then
                 visited[id] = true
-                table.insert(work, other)
+                table.insert(work, other.node)
             end
         end
 

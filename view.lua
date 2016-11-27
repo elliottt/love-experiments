@@ -231,8 +231,8 @@ function View:drawPlanner(planner)
         x1, y1 = self:gridToScreen(a.value)
         x1 = x1 + self.cellWidth2
         y1 = y1 + self.cellHeight2
-        for _, b in pairs(a.edges) do
-            x2, y2 = self:gridToScreen(b.value)
+        for _, edge in pairs(a.edges) do
+            x2, y2 = self:gridToScreen(edge.node.value)
             x2 = x2 + self.cellWidth2
             y2 = y2 + self.cellHeight2
             love.graphics.line(x1, y1, x2, y2)

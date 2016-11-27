@@ -151,6 +151,8 @@ end
 -- Apply a function to the player's position, likely one of the Pos:move*
 -- functions.
 function Model:movePlayer(direction)
+    -- clean out any cached path
+    self.player.path = nil
     return self:playerMove(direction(self.player.pos))
 end
 
@@ -158,7 +160,6 @@ function Model:playerMove(newPos)
     -- if the movement is succeessful or invalid, no cell is returned
     local cell, target = self:moveEntity(self.player, newPos)
     if cell == nil then
-        self.player.path = nil
         self.current:lightFov(self.player.pos)
         return
     end
@@ -179,59 +180,58 @@ end
 
 -- Find a path from a to b, ignoring cells below a given light threshold.
 function Model:findPath(a,b,threshold)
-    local map = self:map()
-
-    -- if the positions are the same, don't bother finding a path
-    if a == b then
-        return nil
-    end
 
     -- if the target is already invisible, bail out early.
-    if map:get(b).light < threshold then
+    if self.current.map:get(b).light < threshold then
         return nil
     end
 
-    return search.astar(a,
+    -- ask the path planner for a path
+    return self.current.planner:findPath(a,b)
 
-        -- hash positions in the visited set
-        function(p)
-            return p:hash()
-        end,
+    -- return search.astar(a,
 
-        -- filter out neighbors that aren't passable
-        function(pos)
-            local others = {}
-            local p
-            for _, dir in next, Direction.all do
-                p    = dir(pos)
-                cell = map:get(p)
-                if cell and cell:passable() and cell.light >= threshold then
-                    table.insert(others, p)
-                end
-            end
+    --     -- hash positions in the visited set
+    --     function(p)
+    --         return p:hash()
+    --     end,
 
-            return others
-        end,
+    --     -- filter out neighbors that aren't passable
+    --     function(pos)
+    --         local others = {}
+    --         local p
+    --         for _, dir in next, Direction.all do
+    --             p    = dir(pos)
+    --             cell = map:get(p)
+    --             if cell and cell:passable() and cell.light >= threshold then
+    --                 table.insert(others, p)
+    --             end
+    --         end
 
-        -- distance from b to a
-        function(pos)
-            return b:dist(pos)
-        end,
+    --         return others
+    --     end,
 
-        500)
+    --     -- distance from b to a
+    --     function(pos)
+    --         return b:dist(pos)
+    --     end,
+
+    --     500)
 end
 
 -- Choose the player's next step using A* towards the exit.
 function Model:searchStep()
 
-    if self.player.pos == self:map().exit then
+    local exit = self:map().exit
+
+    if self.player.pos == exit then
         return
     end
 
     if self.player.path == nil then
         -- the player is only allowed to find paths that involve parts of the
         -- level that they have seen before.
-        self.player.path = self:findPath(self.player.pos, self:map().exit, 0.5)
+        self.player.path = self:findPath(self.player.pos, exit, 0.5)
 
         -- the path includes the current position, so drop the first move
         if self.player.path then

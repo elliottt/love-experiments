@@ -5,10 +5,11 @@ require 'game.prop'
 require 'game.item'
 require 'game.bsp'
 require 'game.grid'
-require 'game.fov'
 require 'rand'
 require 'graph'
 require 'set'
+
+fov = require 'game.fov'
 
 
 Cell = {
@@ -658,6 +659,29 @@ function Planner:getDirectHReachable(pos)
 
 end
 
+-- Find a path between two positions.
+--
+-- @a Starting Pos
+-- @b Ending Pos
+--
+-- @return a path between a and b, or nil if the path is blocked.
+function Planner:findPath(a, b)
+
+    if a == b then
+        return nil
+    end
+
+    local path = self:tryDirectPath(a, b)
+    if path ~= nil then
+        return path
+    end
+
+    -- TODO finish this
+
+    return nil
+
+end
+
 -- Returns an array of positions if there is a direct path between the two
 -- points, otherwise nil is returned.
 --
@@ -667,7 +691,7 @@ end
 -- @return a path between a and b, or nil if the path is blocked.
 function Planner:tryDirectPath(a, b)
     local path={}
-    for x, y in bresenham(a.x, a.y, b.x, b.y) do
+    for x, y in fov.bresenham(a.x, a.y, b.x, b.y) do
         if self.map:passable(x,y) then
             table.insert(path, Pos.create(x,y))
         else
