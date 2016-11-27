@@ -2,6 +2,8 @@
 require 'event'
 require 'game.pos'
 
+local fov = require 'game.fov'
+
 Entity = {
     kind = {},
 }
@@ -24,7 +26,10 @@ Monster = Entity:new{ kind = {} }
 
 function Monster:action(model)
     if self.ai then
-        self.ai:action(self, model)
+        local new = self.ai:action(self, model)
+        if new ~= nil then
+            self.ai = new
+        end
     end
 end
 
