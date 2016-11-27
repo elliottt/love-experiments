@@ -681,13 +681,18 @@ function Planner:findPath(a, b)
         return nil
     end
 
-    path = {}
+    path = {a}
     local p1 = hpath[1]
     local p2
+    local skip
     for i=2,#hpath do
         p2 = hpath[i]
+        skip = true
         for x,y in fov.bresenham(p1.x, p1.y, p2.x, p2.y) do
-            table.insert(path, Pos.create(x,y))
+            if not skip then
+                table.insert(path, Pos.create(x,y))
+            end
+            skip = false
         end
         p1 = p2
     end
