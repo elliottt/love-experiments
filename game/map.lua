@@ -542,7 +542,13 @@ function Planner:new(o)
 end
 
 function Planner.create(map)
+    return Planner:new{ map=map }:recache()
+end
+
+function Planner:recache()
+    local map   = self.map
     local verts = Set.create(Pos.hash)
+
     local other1, other2
 
     -- for all blocked cells, find the vertices of the subgoal graph.
@@ -565,24 +571,18 @@ function Planner.create(map)
         end
     end
 
-    local plan = Planner:new{
-        verts=verts,
-        map=map,
-        graph=Graph:create(),
-    }
+    self.verts = verts
+    local graph = Graph.create()
 
     for pos in verts:iter() do
-        for s in plan:getDirectHReachable(pos):iter() do
-            plan.graph:newEdge(pos, s, true)
+        for s in self:getDirectHReachable(pos):iter() do
+            graph:newEdge(pos, s, pos:dist(s), true)
         end
     end
 
-    for _, node in next, plan.graph.nodes do
-        map:get(node.value).subgoal = true
-    end
+    self.graph = graph
 
-    return plan
-
+    return self
 end
 
 function Planner:isSubgoal(pos)
