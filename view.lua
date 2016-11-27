@@ -227,11 +227,11 @@ end
 
 function View:drawPlanner(planner)
     local x1,y1,x2,y2
-    for _, a in ipairs(planner.graph.nodes) do
-        x1, y1 = self:gridToScreen(a.value)
+    for a, es in planner.graph:iter() do
+        x1, y1 = self:gridToScreen(a)
         x1 = x1 + self.cellWidth2
         y1 = y1 + self.cellHeight2
-        for _, edge in pairs(a.edges) do
+        for _, edge in pairs(es) do
             x2, y2 = self:gridToScreen(edge.node.value)
             x2 = x2 + self.cellWidth2
             y2 = y2 + self.cellHeight2

@@ -1,7 +1,7 @@
 
 require 'game.pos'
 require 'utils'
-fov = require 'game.fov'
+local fov = require 'game.fov'
 
 Grid = { kind = {} }
 

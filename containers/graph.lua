@@ -1,4 +1,6 @@
 
+local Map = require('containers.map')
+
 local Graph = {}
 Graph.__index = Graph
 
@@ -7,11 +9,19 @@ Graph.__index = Graph
 -- @hash Hash function for node hashing
 --
 -- @return an empty Graph
-function Graph.create(hash)
+function Graph.directed(hash)
     return setmetatable({
-        nodeHash = hash or function(x) return x end,
-        nodeIds  = {},
-        nodes    = {},
+        nodeIds    = Map.create(hash),
+        nodes      = {},
+        undirected = false,
+    }, Graph)
+end
+
+function Graph.undirected(hash)
+    return setmetatable({
+        nodeIds    = Map.create(hash),
+        nodes      = {},
+        undirected = true,
     }, Graph)
 end
 
@@ -23,28 +33,42 @@ function Graph:newNode(value)
     return self
 end
 
--- Remove a node from the graph.
-function Graph:removeNode(value)
-    local id = self.nodeIds[value]
-    if self.nodeIds[value] == nil then
-        return
-    end
-end
-
 -- Return the internal ID for the node value given.
 function Graph:getNode(value)
-    local id = self.nodeIds[value]
-    if id == nil then
+    local id, exists = self.nodeIds:lookup(value)
+    if exists then
+        return id
+    else
         table.insert(self.nodes, {
             value=value,
             edges={},
         })
 
         id = #self.nodes
-        self.nodeIds[value] = id
-    end
+        self.nodeIds:insert(value, id)
 
-    return id
+        return id
+    end
+end
+
+-- Remove a node from the graph.
+function Graph:removeNode(value)
+    local removed, id = self.nodeIds:delete(value)
+    if removed then
+        local node = self.nodes[id]
+        self.nodes[id] = nil
+
+        -- remove any back-edges
+        if self.undirected then
+            for _, edge in pairs(node.edges) do
+                edge.node.edges[id] = nil
+            end
+        else
+            for _, es in self:iter() do
+                es[id] = nil
+            end
+        end
+    end
 end
 
 -- Create an edge between two nodes, by node id.
@@ -52,7 +76,7 @@ end
 -- @a Id of the first node
 -- @b Id of the second node
 -- @undirected true when the edge is undirected
-function Graph:newEdge(a,b,weight,undirected)
+function Graph:newEdge(a,b,weight)
     local aId   = self:getNode(a)
     local bId   = self:getNode(b)
     local aNode = self.nodes[aId]
@@ -62,7 +86,7 @@ function Graph:newEdge(a,b,weight,undirected)
         weight=weight,
     }
 
-    if undirected then
+    if self.undirected then
         bNode.edges[aId] = {
             node=aNode,
             weight=weight,
@@ -70,6 +94,25 @@ function Graph:newEdge(a,b,weight,undirected)
     end
 
     return self
+end
+
+-- Node traversal.
+function Graph:iter()
+    local len = #self.nodes
+    local i = 1
+    return function()
+        local entry
+        repeat
+            entry = self.nodes[i]
+            i=i+1
+        until (entry ~= nil or i > len)
+
+        if entry then
+            return entry.value, entry.edges
+        else
+            return nil
+        end
+    end
 end
 
 -- Breadth-first iteration from a given starting point.

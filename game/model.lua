@@ -3,7 +3,7 @@ require 'game.entity'
 require 'game.map'
 require 'utils'
 
-search = require('search')
+local search = require('search')
 
 
 local function genSeed()

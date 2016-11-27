@@ -1,6 +1,5 @@
 
-Set = require 'containers.set'
-
+local Set = require 'containers.set'
 
 local search = {}
 

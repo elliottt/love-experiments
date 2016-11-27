@@ -47,10 +47,12 @@ function Map:delete(key)
         for i, entry in next, bucket do
             if entry.key == key then
                 table.remove(bucket, i)
-                return
+                return true, entry.value
             end
         end
     end
+
+    return false, nil
 end
 
 -- Lookup an entry in the map

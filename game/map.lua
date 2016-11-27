@@ -7,9 +7,9 @@ require 'game.bsp'
 require 'game.grid'
 require 'rand'
 
-Set   = require 'containers.set'
-Graph = require 'containers.graph'
-fov = require 'game.fov'
+local Set   = require 'containers.set'
+local Graph = require 'containers.graph'
+local fov = require 'game.fov'
 
 
 Cell = {
@@ -574,7 +574,7 @@ function Planner:recache()
     end
 
     self.verts = verts
-    local graph = Graph.create()
+    local graph = Graph.undirected(Pos.hash)
 
     for pos in verts:iter() do
         for s in self:getDirectHReachable(pos):iter() do
