@@ -71,6 +71,18 @@ function Graph:removeNode(value)
     end
 end
 
+-- The nodes in the outgoing edges of this node.
+function Graph:outgoing(a)
+    local id, exists = self.nodeIds:lookup(a)
+    local nodes = {}
+    if exists then
+        for _, edge in pairs(self.nodes[id].edges) do
+            table.insert(nodes, edge.node)
+        end
+    end
+    return nodes
+end
+
 -- Create an edge between two nodes, by node id.
 --
 -- @a Id of the first node

@@ -7,9 +7,10 @@ require 'game.bsp'
 require 'game.grid'
 require 'rand'
 
-local Set   = require 'containers.set'
-local Graph = require 'containers.graph'
-local fov = require 'game.fov'
+local Set    = require 'containers.set'
+local Graph  = require 'containers.graph'
+local fov    = require 'game.fov'
+local search = require 'search'
 
 
 Cell = {
@@ -666,20 +667,32 @@ end
 --
 -- @return a path between a and b, or nil if the path is blocked.
 function Planner:findPath(a, b)
-
     if a == b then
         return nil
     end
 
     local path = self:tryDirectPath(a, b)
-    if path ~= nil then
+    if path then
         return path
     end
 
-    -- TODO finish this
+    local hpath = self:findAbstractPath(a,b)
+    if hpath == nil then
+        return nil
+    end
 
-    return nil
+    path = {}
+    local p1 = hpath[1]
+    local p2
+    for i=2,#hpath do
+        p2 = hpath[i]
+        for x,y in fov.bresenham(p1.x, p1.y, p2.x, p2.y) do
+            table.insert(path, Pos.create(x,y))
+        end
+        p1 = p2
+    end
 
+    return path
 end
 
 -- Returns an array of positions if there is a direct path between the two
@@ -699,4 +712,34 @@ function Planner:tryDirectPath(a, b)
         end
     end
     return path
+end
+
+function Planner:findAbstractPath(a, b)
+    return self:connectToGraph(a, function()
+        return self:connectToGraph(b, function()
+            return search.astar(a, Pos.hash, function(p)
+                local nodes = {}
+                for _, node in pairs(self.graph:outgoing(p)) do
+                    table.insert(nodes, node.value)
+                end
+                return nodes
+            end,
+            function(p)
+                return b:dist(p)
+            end)
+        end)
+    end)
+end
+
+function Planner:connectToGraph(pos, body)
+    if self:isSubgoal(pos) then
+        return body()
+    else
+        for s in self:getDirectHReachable(pos):iter() do
+            self.graph:newEdge(pos, s)
+        end
+        local res = body()
+        self.graph:removeNode(pos)
+        return res
+    end
 end

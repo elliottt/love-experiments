@@ -9,15 +9,27 @@ local search = {}
 -- then adds them to the work queue (assuming they haven't been seen yet).
 --
 -- @state   : a
--- @hash    : a -> Int
+-- @hash    : a -> num
 -- @extend  : a -> [a]
--- @measure : a -> Int
--- @bound   : Int
+-- @measure : a -> num
+-- @bound   : Int option
 --
 -- @return an array of moves, or nil if no solution was found
 function search.astar(start, hash, extend, measure, bound)
 
-    bound = bound or 100
+    local finished
+    if bound == nil then
+        finished = function()
+            return false
+        end
+    else
+        local i = 0
+        finished = function()
+            i = i + 1
+            return i > bound
+        end
+    end
+
 
     -- invariant: things that are in the work queue are also in the visited set.
     local visited = Set.create(hash)
@@ -60,11 +72,9 @@ function search.astar(start, hash, extend, measure, bound)
 
     local node
     local children
-    local it = 0
     local added
     while #queue > 0 do
-        it = it + 1
-        if it > bound then
+        if finished() then
             break
         end
 

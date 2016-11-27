@@ -3,8 +3,6 @@ require 'game.entity'
 require 'game.map'
 require 'utils'
 
-local search = require('search')
-
 
 local function genSeed()
     return love.math.random(0, 2 ^ 54 - 1)
@@ -188,35 +186,6 @@ function Model:findPath(a,b,threshold)
 
     -- ask the path planner for a path
     return self.current.planner:findPath(a,b)
-
-    -- return search.astar(a,
-
-    --     -- hash positions in the visited set
-    --     function(p)
-    --         return p:hash()
-    --     end,
-
-    --     -- filter out neighbors that aren't passable
-    --     function(pos)
-    --         local others = {}
-    --         local p
-    --         for _, dir in next, Direction.all do
-    --             p    = dir(pos)
-    --             cell = map:get(p)
-    --             if cell and cell:passable() and cell.light >= threshold then
-    --                 table.insert(others, p)
-    --             end
-    --         end
-
-    --         return others
-    --     end,
-
-    --     -- distance from b to a
-    --     function(pos)
-    --         return b:dist(pos)
-    --     end,
-
-    --     500)
 end
 
 -- Choose the player's next step using A* towards the exit.
