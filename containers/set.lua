@@ -1,18 +1,12 @@
 
-Set = {}
-
-function Set:new(o)
-    o = o or {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
+local Set = {}
+Set.__index = Set
 
 function Set.create(hash)
-    return Set:new{
+    return setmetatable({
         elems = {},
         hash  = hash or function(x) return x end,
-    }
+    }, Set)
 end
 
 function Set:member(x)

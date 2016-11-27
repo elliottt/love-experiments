@@ -1,18 +1,18 @@
 
-Graph = {}
+local Graph = {}
+Graph.__index = Graph
 
-function Graph:new(o)
-    o = o or {}
-    setmetatable(o, self)
-    self.__index = self
-    return o
-end
-
-function Graph.create()
-    return Graph:new{
-        nodeIds = {},
-        nodes   = {},
-    }
+-- Construct a graph that uses the given hash function for node hashing.
+--
+-- @hash Hash function for node hashing
+--
+-- @return an empty Graph
+function Graph.create(hash)
+    return setmetatable({
+        nodeHash = hash or function(x) return x end,
+        nodeIds  = {},
+        nodes    = {},
+    }, Graph)
 end
 
 -- Create a new node in the graph
@@ -21,6 +21,14 @@ end
 function Graph:newNode(value)
     self:getNode(value)
     return self
+end
+
+-- Remove a node from the graph.
+function Graph:removeNode(value)
+    local id = self.nodeIds[value]
+    if self.nodeIds[value] == nil then
+        return
+    end
 end
 
 -- Return the internal ID for the node value given.
@@ -134,3 +142,5 @@ function Graph:components()
 
     return components
 end
+
+return Graph

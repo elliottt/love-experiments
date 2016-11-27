@@ -6,9 +6,9 @@ require 'game.item'
 require 'game.bsp'
 require 'game.grid'
 require 'rand'
-require 'graph'
-require 'set'
 
+Set   = require 'containers.set'
+Graph = require 'containers.graph'
 fov = require 'game.fov'
 
 
