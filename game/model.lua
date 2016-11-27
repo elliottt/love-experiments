@@ -37,6 +37,10 @@ function Model.create(opts)
 
     love.math.setRandomSeed(model.seed)
 
+    -- equip some random stuff
+    model.player:equip(Torso:new{})
+    model.player:equip(Legs:new{})
+
     model:enterLevel(1)
 
     return model

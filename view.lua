@@ -106,6 +106,18 @@ function View:load()
         [Corpse.kind] = {
             self.dungeonSheet:get(2,2),
         },
+
+        [Torso.kind] = {
+            self.charSheet:get(6,0),
+        },
+
+        [Legs.kind] = {
+            self.charSheet:get(3,1),
+        },
+
+        [Feet.kind] = {
+            self.charSheet:get(4,0),
+        }
     }
 
     self.special = {
@@ -117,14 +129,14 @@ function View:load()
             end
         end,
 
-        [Door.kind] = function(door,tiles)
-            tiles[1]:draw(0,0)
+        [Door.kind] = function(door,tiles,x,y)
+            tiles[1]:draw(x,y)
             if door.open then
-                tiles[2]:draw(0,0)
+                tiles[2]:draw(x,y)
             elseif door.locked then
-                tiles[4]:draw(0,0)
+                tiles[4]:draw(x,y)
             else
-                tiles[3]:draw(0,0)
+                tiles[3]:draw(x,y)
             end
         end,
     }
@@ -210,6 +222,10 @@ function View:drawCell(cell)
 end
 
 function View:drawTile(thing,x,y)
+    if thing == nil then
+        return
+    end
+
     local special = self.special[thing.kind]
     local tiles   = self.tiles[thing.kind]
     if special ~= nil then
@@ -223,6 +239,13 @@ end
 
 function View:drawEntity(entity)
     self:drawTile(entity,0,-8)
+
+    -- draw equiptment
+    self:drawTile(entity.equipped[Legs.kind],  0, -8)
+    self:drawTile(entity.equipped[Torso.kind], 0, -8)
+    self:drawTile(entity.equipped[Head.kind],  0, -8)
+    self:drawTile(entity.equipped[Feet.kind],  0, -8)
+    self:drawTile(entity.equipped[Hands.kind], 0, -8)
 end
 
 function View:drawPlanner(planner)

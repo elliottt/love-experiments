@@ -1,4 +1,5 @@
 
+require 'utils'
 require 'event'
 require 'game.pos'
 
@@ -13,12 +14,30 @@ function Entity:new(o)
     setmetatable(o, self)
     self.__index = self
 
-    o.max_hp = o.max_hp or 10
-    o.hp     = o.hp     or o.max_hp
-    o.pos    = o.pos    or Pos:new{ x = 0, y = 0 }
-    o.items  = o.items  or {}
+    o.max_hp   = o.max_hp or 10
+    o.hp       = o.hp     or o.max_hp
+    o.pos      = o.pos    or Pos.create(0,0)
+    o.items    = o.items  or {}
+    o.equipped = o.equipped or {}
 
     return o
+end
+
+function Entity:equip(item)
+    -- if the item can't be equipped
+    if not item:equippable() then
+        return false
+    end
+
+    -- if something of that kind is already equipped
+    if self.equipped[item.kind] ~= nil then
+        return false
+    end
+
+    -- equip it
+    self.equipped[item.kind] = item
+
+    return true
 end
 
 Player  = Entity:new{ kind = {} }
