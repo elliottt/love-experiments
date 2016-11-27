@@ -77,7 +77,7 @@ function Graph:outgoing(a)
     local nodes = {}
     if exists then
         for _, edge in pairs(self.nodes[id].edges) do
-            table.insert(nodes, edge.node)
+            table.insert(nodes, edge.node.value)
         end
     end
     return nodes
