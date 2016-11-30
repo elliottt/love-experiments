@@ -26,7 +26,7 @@ end
 
 function Chest:interact(player, cell)
     if self.locked then
-        notify('unlock', cell)
+        event.notify('prop.chest.unlock', cell)
     end
 
     self.open = not self.open

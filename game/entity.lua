@@ -1,9 +1,10 @@
 
 require 'utils'
-require 'event'
 require 'game.pos'
 
-local fov = require 'game.fov'
+local event = require 'event'
+local fov   = require 'game.fov'
+
 
 Entity = {
     kind = {},
@@ -36,6 +37,8 @@ function Entity:equip(item)
 
     -- equip it
     self.equipped[item.kind] = item
+
+    event.notify('entity.equip', self, item)
 
     return true
 end

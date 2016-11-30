@@ -3,7 +3,9 @@ require 'threads'
 
 local handlers = {}
 
-function notify(name, data)
+local event = {}
+
+function event.notify(name, data)
     local reg = handlers[name]
     if reg then
         for i,handler in ipairs(reg) do
@@ -14,7 +16,7 @@ function notify(name, data)
     end
 end
 
-function listen(name, handler)
+function event.listen(name, handler)
     if nil == handlers[name] then
         handlers[name] = { handler }
     else
@@ -22,7 +24,7 @@ function listen(name, handler)
     end
 end
 
-function ignore(name, handler)
+function event.ignore(name, handler)
     local reg = handlers[name]
     if reg then
         for i,h in ipairs(reg) do
@@ -33,3 +35,5 @@ function ignore(name, handler)
         end
     end
 end
+
+return event

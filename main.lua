@@ -6,7 +6,6 @@ require 'animation'
 require 'game.model'
 require 'view'
 require 'game-state'
-require 'event'
 
 local menu  = MenuState:new()
 local game  = PlayingState:new()

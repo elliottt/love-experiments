@@ -3,6 +3,8 @@ require 'game.entity'
 require 'game.map'
 require 'utils'
 
+local event = require 'event'
+
 
 local function genSeed()
     return love.math.random(0, 2 ^ 54 - 1)
@@ -175,7 +177,7 @@ function Model:playerMove(newPos)
     -- otherwise, there is an attack to perform
     target.hp = target.hp - 1
     if target.hp == 0 then
-        notify('dead', cell)
+        event.notify('entity.dead', cell)
         self:kill(cell)
     end
 end
@@ -324,6 +326,8 @@ function Level:spawn(pos)
     local mob = Monster:new{ pos = pos, hp = 1, ai = Wander:new{} }
     table.insert(self.mobs, mob)
     cell:setEntity(mob)
+
+    event.notify('entity.spawn', mob)
 
     return mob
 end

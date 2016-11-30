@@ -1,6 +1,8 @@
 
 require 'sprites'
 
+local event = require 'event'
+
 View = {}
 
 function View:new(o)
@@ -11,7 +13,7 @@ function View:new(o)
 end
 
 function View.create()
-    return View:new{
+    local view = View:new{
         charSheet = nil,
         playerSprite = nil,
         cellWidth = 16,  cellWidth2 = 8,
@@ -19,7 +21,18 @@ function View.create()
         offx = 0,
         offy = 0,
         tintVal = false,
+        entities = {}
     }
+
+    event.listen('entity.spawn', function(entity)
+        view:renderEntity(entity)
+    end)
+
+    event.listen('entity.equip', function(entity, item)
+        view:renderEntity(entity)
+    end)
+
+    return view
 end
 
 function View:load()
@@ -217,7 +230,7 @@ function View:drawCell(cell)
     end
 
     if cell.entity and (cell.light >= 0.8 or self.tintVal ~= false) then
-        self:drawEntity(cell.entity)
+        love.graphics.draw(self.entities[cell.entity],0,-8)
     end
 end
 
@@ -237,17 +250,6 @@ function View:drawTile(thing,x,y)
     end
 end
 
-function View:drawEntity(entity)
-    self:drawTile(entity,0,-8)
-
-    -- draw equiptment
-    self:drawTile(entity.equipped[Legs.kind],  0, -8)
-    self:drawTile(entity.equipped[Torso.kind], 0, -8)
-    self:drawTile(entity.equipped[Head.kind],  0, -8)
-    self:drawTile(entity.equipped[Feet.kind],  0, -8)
-    self:drawTile(entity.equipped[Hands.kind], 0, -8)
-end
-
 function View:drawPlanner(planner)
     local x1,y1,x2,y2
     for a, es in planner.graph:iter() do
@@ -261,4 +263,25 @@ function View:drawPlanner(planner)
             love.graphics.line(x1, y1, x2, y2)
         end
     end
+end
+
+function View:renderEntity(entity)
+    local canvas = self.entities[entity]
+    if canvas == nil then
+        canvas = love.graphics.newCanvas(self.cellWidth, self.cellHeight)
+        self.entities[entity] = canvas
+    end
+
+    canvas:renderTo(function()
+        love.graphics.clear(0,0,0,0)
+
+        self:drawTile(entity)
+
+        -- draw equiptment
+        self:drawTile(entity.equipped[Legs.kind],  0, 0)
+        self:drawTile(entity.equipped[Torso.kind], 0, 0)
+        self:drawTile(entity.equipped[Head.kind],  0, 0)
+        self:drawTile(entity.equipped[Feet.kind],  0, 0)
+        self:drawTile(entity.equipped[Hands.kind], 0, 0)
+    end)
 end
