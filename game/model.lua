@@ -52,6 +52,10 @@ function Model:map()
     return self.current.map
 end
 
+function Model:fov(pos,radius)
+    return self:map():fov(pos,radius)
+end
+
 function Model:planner()
     return self.current.planner
 end
@@ -302,7 +306,6 @@ function Level:lightFov(pos, radius)
             end
         end
     end
-
 end
 
 function Level:findHidden()
@@ -323,7 +326,12 @@ function Level:spawn(pos)
         return nil
     end
 
-    local mob = Monster:new{ pos = pos, hp = 1, ai = Wander:new{} }
+    local mob = Monster:new{
+        pos = pos,
+        hp = 1,
+        ai = Sleep:new{}
+    }
+
     table.insert(self.mobs, mob)
     cell:setEntity(mob)
 

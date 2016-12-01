@@ -2,6 +2,8 @@
 require 'utils'
 require 'game.pos'
 
+local fov = require 'game.fov'
+
 local event = require 'event'
 local fov   = require 'game.fov'
 
@@ -84,4 +86,25 @@ function Wander:action(entity, model)
 
     -- move in a random direction
     model:moveEntity(entity, pick(ns))
+end
+
+
+Sleep = AI:new{ kind = {} }
+
+-- Wakeup when the player comes into view.
+function Sleep:action(entity, model)
+    local map = model:map()
+    local cell
+    for ray in model:fov(entity.pos, 6) do
+        for x,y in ray do
+            cell = map:get(x,y)
+            if not (cell and cell:passable()) then
+                break
+            end
+
+            if cell.entity and cell.entity == model.player then
+                return Wander:new{}
+            end
+        end
+    end
 end
