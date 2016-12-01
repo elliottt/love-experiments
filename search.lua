@@ -1,5 +1,6 @@
 
-local Set = require 'containers.set'
+local Set  = require 'containers.set'
+local Heap = require 'containers.heap'
 
 local search = {}
 
@@ -54,7 +55,7 @@ function search.astar(start, hash, extend, measure, bound)
         }
     end
 
-    local function comp(a,b)
+    local function cmp(a,b)
         return a.h <= b.h and a.distance < b.distance
     end
 
@@ -68,7 +69,7 @@ function search.astar(start, hash, extend, measure, bound)
         return result
     end
 
-    local queue = { mkNode(nil, start) }
+    local queue = Heap.create(cmp):insert(mkNode(nil, start))
 
     local node
     local children
@@ -78,7 +79,7 @@ function search.astar(start, hash, extend, measure, bound)
             break
         end
 
-        node = table.remove(queue,1)
+        node = queue:remove()
 
         if node.distance == 0 then
             return extractPath(node)
@@ -86,13 +87,8 @@ function search.astar(start, hash, extend, measure, bound)
             added = false
             for _,child in ipairs(extend(node.state)) do
                 if not visited:member(child) then
-                    table.insert(queue, mkNode(node, child))
-                    added = true
+                    queue:insert(mkNode(node, child))
                 end
-            end
-
-            if added then
-                table.sort(queue, comp)
             end
         end
     end
