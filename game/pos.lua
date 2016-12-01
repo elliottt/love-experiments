@@ -13,6 +13,26 @@ function Pos:__tostring()
 end
 
 function Pos:__eq(other)
+    return self.x == other.x and self.y == other.y
+end
+
+function Pos:__gt(other)
+    return (self.x > other.x) or (self.x == other.x and self.y > other.y)
+end
+
+function Pos:__ge(other)
+    return (self.x >= other.x) or (self.x == other.x and self.y >= other.y)
+end
+
+function Pos:__lt(other)
+    return (self.x < other.x) or (self.x == other.x and self.y < other.y)
+end
+
+function Pos:__le(other)
+    return (self.x <= other.x) or (self.x == other.x and self.y <= other.y)
+end
+
+function Pos:__eq(other)
     return self.kind == other.kind and self.x == other.x and self.y == other.y
 end
 
