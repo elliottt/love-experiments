@@ -182,6 +182,7 @@ PlayingState = GameState:new{
 }
 
 function PlayingState:enter()
+    self.view:reset()
     self.model = Model.create{
         mapWidth = 32,
         mapHeight = 32,

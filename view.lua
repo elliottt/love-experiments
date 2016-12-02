@@ -35,6 +35,10 @@ function View.create()
     return view
 end
 
+function View:reset()
+    self.entities = {}
+end
+
 function View:load()
 
     self.tint = love.graphics.newShader('shaders/tint.glsl')
