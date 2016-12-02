@@ -57,7 +57,7 @@ end
 
 -- Pick a random point within the region.
 function Region:pick()
-    return 
+    return
         choose(self.x, self.x + self.w - 1),
         choose(self.y, self.y + self.h - 1)
 end
@@ -96,7 +96,9 @@ end
 function Node:rooms(accumulate)
     self.left:rooms(accumulate)
     if self.room ~= nil then
-        accumulate(self.room)
+        for _, room in next, self.room do
+            accumulate(room)
+        end
     end
     self.right:rooms(accumulate)
 end

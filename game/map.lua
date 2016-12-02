@@ -159,6 +159,9 @@ function Map.defaults(opts)
     opts.maxRoomWidth    = opts.maxRoomWidth or 10
     opts.maxRoomHeight   = opts.maxRoomHeight or 10
 
+    -- depth to stop generating multiple hallways at
+    opts.hallwayThreshold = 3
+
     -- minimum hallway length for two doors
     opts.hallwayDoorLen  = 4
 
@@ -183,7 +186,7 @@ end
 -- Map generator core
 function Map:gen(opts)
     local bsp = self:divide(opts)
-    self:placeRooms(opts,bsp)
+    self:placeRooms(opts,1,bsp)
 
     -- pick a rooms for the entrance and exit
     local entrance = pick(self.rooms)
@@ -252,17 +255,17 @@ function subDivide(opts, iters, region)
 end
 
 
-function Map:placeRooms(opts,node)
+function Map:placeRooms(opts,depth,node)
     if node.kind == Region.kind then
         self:placeRoom(opts, node)
     else
-        self:placeRooms(opts, node.left)
-        self:placeRooms(opts, node.right)
+        self:placeRooms(opts, depth+1, node.left)
+        self:placeRooms(opts, depth+1, node.right)
 
         if node.isVert then
-            node.room = self:placeHorizHallway(opts, node.left, node.right)
+            node.room = self:placeHorizHallway(opts, depth, node.left, node.right)
         else
-            node.room = self:placeVertHallway(opts, node.left, node.right)
+            node.room = self:placeVertHallway(opts, depth, node.left, node.right)
         end
     end
 end
@@ -303,7 +306,7 @@ function Map:placeRoom(opts, region)
 end
 
 
--- Find two rooms that overlap within the given regions, or return nil.
+-- Return a sorted list of pairs of rooms that overlap.
 function roomOverlap(mkExtent,distance,top,bottom)
 
     local ps = {}
@@ -328,51 +331,68 @@ function roomOverlap(mkExtent,distance,top,bottom)
         return a.dist < b.dist
     end)
 
-    if #ps == 0 then
-        return nil
-    else
-        local pair = ps[1]
-        return pair.overlap, pair.room1, pair.room2
-    end
+    return ps
 
 end
 
 
-function Map:placeHorizHallway(opts, left, right)
-    local overlap, r1, r2 = roomOverlap(RectRoom.vertExtent,
+function Map:placeHorizHallway(opts, depth, left, right)
+    local overlaps = roomOverlap(RectRoom.vertExtent,
             RectRoom.horizDistance, left, right)
 
-    if r1 ~= nil then
-        local y = choose(overlap.l, overlap.h)
-        local x = r1.x + r1.w
-        local room = Hallway.create(x, y, r2.x-x, 1)
+    if #overlaps == 0 then
+        error('TODO: handle non-overlap')
+    end
+
+    local rooms = {}
+    local overlap, r1, r2, x, y, room
+    for i=1, math.max(opts.hallwayThreshold-depth+1,1) do
+        local e = overlaps[i]
+        if e == nil then
+            break
+        end
+
+        overlap, r1, r2 = e.overlap, e.room1, e.room2
+        y = choose(overlap.l, overlap.h)
+        x = r1.x + r1.w
+
+        room = Hallway.create(x, y, r2.x-x, 1)
 
         self:chooseDoors(opts, room, room.w)
         self:addHall(room)
 
-        return room
-    else
-        error('TODO: handle non-overlap')
     end
+
+    return rooms
 end
 
 
-function Map:placeVertHallway(opts, top, bottom)
-    local overlap, r1, r2 = roomOverlap(RectRoom.horizExtent,
+function Map:placeVertHallway(opts, depth, top, bottom)
+    local overlaps = roomOverlap(RectRoom.horizExtent,
             RectRoom.vertDistance, top, bottom)
-    if overlap ~= nil then
-        local x = choose(overlap.l, overlap.h)
-        local y = r1.y + r1.h
-        local room = Hallway.create(x, y, 1, r2.y - y)
+
+    if #overlaps == 0 then
+        error('TODO: handle non-overlap')
+    end
+
+    local rooms = {}
+    local overlap, r1, r2, x, y, room
+    for i=1, math.max(opts.hallwayThreshold-depth,1) do
+        local e = overlaps[i]
+        if e == nil then
+            break
+        end
+
+        overlap, r1, r2 = e.overlap, e.room1, e.room2
+        x = choose(overlap.l, overlap.h)
+        y = r1.y + r1.h
+        room = Hallway.create(x, y, 1, r2.y - y)
 
         self:chooseDoors(opts, room, room.h)
         self:addHall(room)
-
-        return room
-    else
-        error('TODO: fix overlap failure')
     end
 
+    return rooms
 end
 
 
