@@ -14,14 +14,16 @@ Entity = {
 
 function Entity:new(o)
     o = o or {}
-    setmetatable(o, self)
-    self.__index = self
 
     o.max_hp   = o.max_hp or 10
     o.hp       = o.hp     or o.max_hp
     o.pos      = o.pos    or Pos.create(0,0)
     o.items    = o.items  or {}
     o.equipped = o.equipped or {}
+
+    setmetatable(o, self)
+    self.__index = self
+
 
     return o
 end
