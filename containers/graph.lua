@@ -74,13 +74,22 @@ end
 -- The nodes in the outgoing edges of this node.
 function Graph:outgoing(a)
     local id, exists = self.nodeIds:lookup(a)
-    local nodes = {}
     if exists then
-        for _, edge in pairs(self.nodes[id].edges) do
-            table.insert(nodes, edge.node.value)
+        local edges = self.nodes[id].edges
+        local ix    = nil
+        return function()
+            ix, edge = next(edges, ix)
+            if ix == nil then
+                return nil
+            end
+
+            return edge.node.value, edge.weight
+        end
+    else
+        return function()
+            return nil
         end
     end
-    return nodes
 end
 
 -- Create an edge between two nodes, by node id.

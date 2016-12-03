@@ -758,11 +758,7 @@ function Planner:findAbstractPath(a, b)
     return self:connectToGraph(a, function()
         return self:connectToGraph(b, function()
             return search.astar(a, Pos.hash, function(p)
-                local nodes = {}
-                for _, q in pairs(self.graph:outgoing(p)) do
-                    table.insert(nodes, q)
-                end
-                return nodes
+                return self.graph:outgoing(p)
             end,
             function(p)
                 return b:dist(p)

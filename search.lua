@@ -85,7 +85,7 @@ function search.astar(start, hash, extend, measure, bound)
             return extractPath(node)
         else
             added = false
-            for _,child in ipairs(extend(node.state)) do
+            for child, dist in extend(node.state) do
                 if not visited:member(child) then
                     queue:insert(mkNode(node, child))
                 end
