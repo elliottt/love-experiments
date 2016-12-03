@@ -754,6 +754,12 @@ function Planner:tryDirectPath(a, b)
     return path
 end
 
+-- Find a path in the subgoal graph between two points.
+--
+-- @a Starting point
+-- @b Ending point
+--
+-- @return abstract path, or nil
 function Planner:findAbstractPath(a, b)
     return self:connectToGraph(a, function()
         return self:connectToGraph(b, function()
@@ -767,6 +773,13 @@ function Planner:findAbstractPath(a, b)
     end)
 end
 
+-- Temporarily add a point to the subgoal graph. The node will be removed after
+-- the `body` function has been run.
+--
+-- @pos Point to add
+-- @body Function to run before the point is removed again
+--
+-- @return the return value of `body`
 function Planner:connectToGraph(pos, body)
     if self:isSubgoal(pos) then
         return body()
