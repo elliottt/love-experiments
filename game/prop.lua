@@ -1,4 +1,6 @@
 
+local event = require 'event'
+
 Prop = {
     kind = {},
 }
@@ -16,9 +18,9 @@ end
 
 Chest = Prop:new{ kind = {} }
 
-function Chest.create()
+function Chest.create(contents)
     return Chest:new{
-        contents = {},
+        contents = contents,
         locked = true,
         open = false,
     }

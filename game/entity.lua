@@ -21,9 +21,11 @@ function Entity:new(o)
     o.items    = o.items  or {}
     o.equipped = o.equipped or {}
 
+    o.str = 0
+    o.dex = 0
+
     setmetatable(o, self)
     self.__index = self
-
 
     return o
 end

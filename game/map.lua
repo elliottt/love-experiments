@@ -203,6 +203,21 @@ function Map:gen(opts)
     -- pick a point for the down-stairs
     self.exit = exit:pick():adjust(exit.x, exit.y)
     self:get(self.exit):setProp(DownStairs:new())
+
+    self:placeChests(opts)
+end
+
+
+function Map:placeChests(opts)
+    local items, cell, x, y
+    for i=1,2 do
+        x, y, cell = self:pick(function(c)
+            return c:vacant()
+        end)
+
+        -- TODO: generate some items
+        cell.prop = Chest.create({})
+    end
 end
 
 
