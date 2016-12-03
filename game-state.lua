@@ -112,6 +112,7 @@ PlayingState = GameState:new{
 
         v = function(self)
             self.view:toggleTint()
+            self.model:toggleDebug()
         end,
 
         h = function(self)

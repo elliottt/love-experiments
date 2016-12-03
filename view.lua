@@ -37,6 +37,7 @@ end
 
 function View:reset()
     self.entities = {}
+    self.tintVal = false
 end
 
 function View:load()

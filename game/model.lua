@@ -35,6 +35,7 @@ function Model.create(opts)
         current = nil,
         seed = opts.seed or genSeed(),
         turns = 0,
+        debug = false,
     }
 
     love.math.setRandomSeed(model.seed)
@@ -46,6 +47,10 @@ function Model.create(opts)
     model:enterLevel(1)
 
     return model
+end
+
+function Model:toggleDebug()
+    self.debug = not self.debug
 end
 
 function Model:map()
@@ -190,7 +195,7 @@ end
 function Model:findPath(a,b,threshold)
 
     -- if the target is already invisible, bail out early.
-    if self.current.map:get(b).light < threshold then
+    if not self.debug and self.current.map:get(b).light < threshold then
         return nil
     end
 
