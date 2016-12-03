@@ -11,9 +11,9 @@ local search = {}
 --
 -- @state   : a
 -- @hash    : a -> num
--- @extend  : a -> [a]
+-- @extend  : a -> iter(a, optional num)
 -- @measure : a -> num
--- @bound   : Int option
+-- @bound   : num option
 --
 -- @return an array of moves, or nil if no solution was found
 function search.astar(start, hash, extend, measure, bound)
@@ -35,15 +35,17 @@ function search.astar(start, hash, extend, measure, bound)
     -- invariant: things that are in the work queue are also in the visited set.
     local visited = Set.create(hash)
 
-    local function mkNode(parent,state)
+    local function mkNode(parent,state,stepCost)
         visited:insert(state)
 
         local cost
         if parent then
-            cost = parent.cost + 1
+            cost = parent.cost + (stepCost or 1)
         else
             cost = 0
         end
+
+        print(state, cost, stepCost)
 
         local distance = measure(state)
         return {
@@ -87,7 +89,7 @@ function search.astar(start, hash, extend, measure, bound)
             added = false
             for child, dist in extend(node.state) do
                 if not visited:member(child) then
-                    queue:insert(mkNode(node, child))
+                    queue:insert(mkNode(node, child, dist))
                 end
             end
         end

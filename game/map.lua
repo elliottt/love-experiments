@@ -772,7 +772,7 @@ function Planner:connectToGraph(pos, body)
         return body()
     else
         for s in self:getDirectHReachable(pos):iter() do
-            self.graph:newEdge(pos, s)
+            self.graph:newEdge(pos, s, pos:dist(s))
         end
         local res = body()
         self.graph:removeNode(pos)
