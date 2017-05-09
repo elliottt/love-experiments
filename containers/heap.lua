@@ -49,6 +49,10 @@ local function swap(arr, a, b)
     arr[a], arr[b] = arr[b], arr[a]
 end
 
+function Heap:peek()
+    return self[1]
+end
+
 function Heap:remove()
     if self.max > 1 then
         local res = self[1]
