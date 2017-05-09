@@ -1,5 +1,6 @@
 
-require 'threads'
+local Thread = require 'threads'
+
 require 'sprites'
 
 Frame = {}
@@ -20,10 +21,10 @@ end
 local animations = {}
 
 function initAnimation()
-    fork(function()
+    Thread.fork(function()
         local diff = 0
         while true do
-            diff = yield()
+            diff = Thread.yield()
             for key,anim in ipairs(animations) do
                 if anim.running then
                     anim.acc = anim.acc + diff

@@ -21,22 +21,20 @@ function View.create()
         offx = 0,
         offy = 0,
         tintVal = false,
-        entities = {}
     }
 
     event.listen('entity.spawn', function(entity)
-        view:renderEntity(entity)
+        --view:renderEntity(entity)
     end)
 
     event.listen('entity.equip', function(entity, item)
-        view:renderEntity(entity)
+        --view:renderEntity(entity)
     end)
 
     return view
 end
 
 function View:reset()
-    self.entities = {}
     self.tintVal = false
 end
 
@@ -199,7 +197,7 @@ end
 
 function View:draw(model)
 
-    self:center(model, 1)
+    self:center(model, 2)
 
     -- draw the base tiles
     love.graphics.setShader(self.tint)
@@ -235,7 +233,7 @@ function View:drawCell(cell)
     end
 
     if cell.entity and (cell.light >= 0.8 or self.tintVal ~= false) then
-        love.graphics.draw(self.entities[cell.entity],0,-8)
+        self:renderEntity(cell.entity)
     end
 end
 
@@ -271,22 +269,12 @@ function View:drawPlanner(planner)
 end
 
 function View:renderEntity(entity)
-    local canvas = self.entities[entity]
-    if canvas == nil then
-        canvas = love.graphics.newCanvas(self.cellWidth, self.cellHeight)
-        self.entities[entity] = canvas
-    end
+    self:drawTile(entity)
 
-    canvas:renderTo(function()
-        love.graphics.clear(0,0,0,0)
-
-        self:drawTile(entity)
-
-        -- draw equiptment
-        self:drawTile(entity.equipped[Legs.kind],  0, 0)
-        self:drawTile(entity.equipped[Torso.kind], 0, 0)
-        self:drawTile(entity.equipped[Head.kind],  0, 0)
-        self:drawTile(entity.equipped[Feet.kind],  0, 0)
-        self:drawTile(entity.equipped[Hands.kind], 0, 0)
-    end)
+    -- draw equiptment
+    self:drawTile(entity.equipped[Legs.kind],  0, 0)
+    self:drawTile(entity.equipped[Torso.kind], 0, 0)
+    self:drawTile(entity.equipped[Head.kind],  0, 0)
+    self:drawTile(entity.equipped[Feet.kind],  0, 0)
+    self:drawTile(entity.equipped[Hands.kind], 0, 0)
 end

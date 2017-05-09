@@ -1,7 +1,7 @@
 
 -- lovebird = require 'lovebird'
 
-require 'threads'
+local Thread = require 'threads'
 require 'animation'
 require 'game.model'
 require 'view'
@@ -20,6 +20,8 @@ local function switchTo(newState)
 end
 
 function love.load()
+    Thread.init()
+
     initAnimation()
 
     love.keyboard.setKeyRepeat(true)
@@ -60,6 +62,6 @@ function love.keypressed(key,scan,isrepeat)
 end
 
 function love.update()
-    step{}
+    Thread.update()
     state:update()
 end

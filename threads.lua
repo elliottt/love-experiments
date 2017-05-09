@@ -1,89 +1,162 @@
 
-local running = {
-    threads = {},
-}
 
--- Fork off a local thread, returning its id.
-function fork(fun)
-    local entry = {
-        thread     = nil,
-        lastUpdate = love.timer.getTime(),
-        running    = true,
+local Scheduler = {}
+Scheduler.__index = Scheduler
+
+
+function Scheduler.create(options)
+    local o = {
+        head = nil,
+        tail = nil,
+        getTime = options.getTime or love.timer.getTime
     }
 
-    table.insert(running.threads, entry)
+    setmetatable(o, Scheduler)
 
-    local id = #running.threads
-    entry.thread = coroutine.create(fun, id)
-
-    return id
+    return o
 end
 
+
+
+function Scheduler:add(thread)
+
+    local node = {
+        thread = thread,
+        child = nil,
+        lastUpdate = self.getTime(),
+        deadline = 0,
+        killed = false,
+    }
+
+    if self.head == nil then
+        self.head  = node
+        self.tail  = node
+        node.child = node
+    else
+        self.tail.child = node
+        self.tail       = node
+    end
+
+end
+
+function Scheduler:remove(prev, node)
+
+    if prev == node then
+        self.head = nil
+        self.tail = nil
+    else
+        prev.child = node.child
+    end
+
+end
+
+function Scheduler:run()
+
+    local now = self.getTime()
+
+    -- nothing to run?
+    if self.head == nil then
+        return
+    end
+
+    local cursor = self.head
+    local prev   = self.tail
+    local diff   = 0
+    local ok, sleep, amount = true, false, 0
+
+    -- run each thread for one iteration
+    repeat
+
+        if cursor.killed then
+            ok = false
+        elseif cursor.deadline < now then
+            diff = now - cursor.lastUpdate
+            ok, sleep, amount = coroutine.resume(cursor.thread, diff, cursor.thread)
+        end
+
+        -- update time
+        now = self.getTime()
+
+        -- if the thread had an error, remove it from the queue
+        if ok == false or coroutine.status(cursor.thread) == 'dead' then
+            cursor = self:remove(prev, cursor)
+
+        else
+            -- if sleeping, set the deadline to now + amount
+            if sleep then
+                cursor.deadline = now + amount
+            end
+
+            prev              = cursor
+            cursor.lastUpdate = now
+            cursor            = cursor.child
+        end
+
+    until (cursor == nil or cursor == self.head)
+
+end
+
+
+function Scheduler:kill(thread)
+
+    local cursor = self.head
+
+    if cursor == nil then
+        return
+    end
+
+    repeat
+
+        if cursor.thread == thread then
+            cursor.killed = true
+            break
+        end
+
+        cursor = cursor.child
+
+    until (cursor == nil or cursor == self.head)
+
+end
+
+
+local Thread = {}
+Thread.__index = Thread
+
+local scheduler = nil
+
+function Thread.init(options)
+    scheduler = Scheduler.create(options or {})
+end
+
+function Thread.fork(fn)
+    local thread = coroutine.create(fn)
+    scheduler:add(thread)
+
+    return thread
+end
+
+
 -- Return to the scheduler.
-function yield()
+function Thread.yield()
     return coroutine.yield()
 end
 
+
 -- Kill the thread with this id.
-function kill(ref)
-    local thread = running.threads[ref]
-    if thread ~= nil then
-        running.threads[ref] = nil
-    end
+function Thread.kill(thread)
+    return scheduler:kill(thread)
 end
 
--- Sleep for this much time.
---
--- Currently, this sleeps by updating an accumulator on the running queue, but
--- it would be nice to have a sleeping queue that was sorted on wakeup time
--- instead.
-function sleep(amount)
-    local elapsed = 0
-    local diff    = 0
-    while true do
-        diff    = yield()
-        elapsed = elapsed + diff
-        if elapsed >= amount then
-            return elapsed
-        end
-    end
+
+-- Sleep for the given amount of time
+function Thread.sleep(amount)
+    coroutine.yield(true, amount)
 end
 
--- Cause the thread to be skipped in the scheduler.
-function pause(ref)
-    local thread = running.threads[ref]
-    if thread then
-        thread.running = false
-    end
-end
-
--- Resume a paused thread.
-function resume(ref)
-    local thread = running.threads[ref]
-    if thread then
-        thread.running = true
-    end
-end
 
 -- Step the scheduler.
-function step(options)
-    local getTime = options.getTime or love.timer.getTime
-    local now     = 0.0
-
-    local threads = running.threads
-    local start   = nil
-    local diff    = nil
-
-    for key, co in ipairs(threads) do
-        if co.running then
-            start = getTime()
-            diff  = start - co.lastUpdate
-            coroutine.resume(co.thread, diff)
-            if coroutine.status(co.thread) == 'dead' then
-                threads[key] = nil
-            else
-                co.lastUpdate = getTime()
-            end
-        end
-    end
+function Thread.update()
+    scheduler:run()
 end
+
+return Thread
