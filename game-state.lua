@@ -84,6 +84,10 @@ MenuState = GameState:new{
         c = function(self)
             return SpriteSheetView:new():init(self, 'sprites/roguelikeSheet_transparent.png')
         end,
+
+        d = function(self)
+            return TweenDemo:new():init(self)
+        end,
     }
 }
 
@@ -301,4 +305,50 @@ function SpriteSheetView:draw()
 
 
     end
+end
+
+
+local Tween = require 'tween'
+
+TweenDemo = GameState:new{
+    kind = {},
+    tween = nil,
+
+    x = 0,
+
+    keys = {
+        q = function(self)
+            return self.menu
+        end,
+
+        space = function(self)
+            self.tween:cancel()
+            return TweenDemo:new():init(self.menu)
+        end,
+    },
+}
+
+
+function TweenDemo:init(menu)
+    local time
+
+    self.tween = Tween.linear(0,10,1.0)
+
+    self.menu = menu
+    self.msg = 'starting...'
+
+    self.tween:onStep(function(x)
+        self.msg = 'stepping: ' .. tostring(x)
+    end):onFinish(function(x)
+        time = love.timer.getTime() - time
+        self.msg = 'done! (' .. time .. ')'
+    end):start()
+
+    time = love.timer.getTime()
+
+    return self
+end
+
+function TweenDemo:draw()
+    love.graphics.print(self.msg, 100, 100)
 end

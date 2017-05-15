@@ -31,21 +31,33 @@ function Scheduler:add(thread)
     if self.head == nil then
         self.head  = node
         self.tail  = node
-        node.child = node
     else
         self.tail.child = node
         self.tail       = node
     end
 
+    node.child = head
 end
 
 function Scheduler:remove(prev, node)
 
-    if prev == node then
+    -- is this a singleton list?
+    if node == prev then
         self.head = nil
         self.tail = nil
     else
+        -- is the node being removed the head?
+        if node == self.head then
+            self.head = node.child
+
+        -- or the tail?
+        elseif node == self.tail then
+            self.tail = prev
+        end
+
+        -- fix the link
         prev.child = node.child
+
     end
 
 end
@@ -64,6 +76,8 @@ function Scheduler:run()
     local diff   = 0
     local ok, sleep, amount = true, false, 0
 
+    local len = 0
+
     -- run each thread for one iteration
     repeat
 
@@ -80,6 +94,9 @@ function Scheduler:run()
         -- if the thread had an error, remove it from the queue
         if ok == false or coroutine.status(cursor.thread) == 'dead' then
             cursor = self:remove(prev, cursor)
+            if sleep ~= nil then
+                print(sleep)
+            end
 
         else
             -- if sleeping, set the deadline to now + amount
@@ -92,7 +109,11 @@ function Scheduler:run()
             cursor            = cursor.child
         end
 
+        len = len + 1
+
     until (cursor == nil or cursor == self.head)
+
+    print('tick', now, len)
 
 end
 
