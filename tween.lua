@@ -40,8 +40,6 @@ function Handle:start()
         end
     end)
 
-    print('started', self.thread)
-
     return self
 end
 

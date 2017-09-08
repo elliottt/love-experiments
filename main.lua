@@ -2,6 +2,7 @@
 -- lovebird = require 'lovebird'
 
 local Thread = require 'threads'
+
 require 'animation'
 require 'game.model'
 require 'view'

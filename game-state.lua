@@ -332,7 +332,7 @@ TweenDemo = GameState:new{
 function TweenDemo:init(menu)
     local time
 
-    self.tween = Tween.linear(0,10,1.0)
+    self.tween = Tween.linear(0,10,0.2)
 
     self.menu = menu
     self.msg = 'starting...'

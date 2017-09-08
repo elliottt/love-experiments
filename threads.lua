@@ -1,5 +1,4 @@
 
-
 local Scheduler = {}
 Scheduler.__index = Scheduler
 
@@ -112,8 +111,6 @@ function Scheduler:run()
         len = len + 1
 
     until (cursor == nil or cursor == self.head)
-
-    print('tick', now, len)
 
 end
 
