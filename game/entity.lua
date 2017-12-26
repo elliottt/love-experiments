@@ -44,7 +44,7 @@ function Entity:equip(item)
     -- equip it
     self.equipped[item.kind] = item
 
-    event.notify('entity.equip', self, item)
+    event.notify('entity.equip', {entity=self, item=item})
 
     return true
 end

@@ -68,7 +68,7 @@ Tween.__index = Tween
 function Tween.linear(s,e,duration)
     local diff = e - s
     return Handle.new(function(handle, scale, dt)
-        return diff * scale;
+        return s + diff * scale;
     end, duration)
 end
 

@@ -46,6 +46,8 @@ function Model.create(opts)
 
     model:enterLevel(1)
 
+    event.notify('entity.spawn', model.player)
+
     return model
 end
 
@@ -153,10 +155,13 @@ function Model:moveEntity(entity, newPos)
         return cell, cell.entity
     end
 
-    local oldCell  = map:get(entity.pos)
+    local oldPos   = entity.pos
+    local oldCell  = map:get(oldPos)
     oldCell:setEntity(nil)
     cell:setEntity(entity)
     entity.pos     = newPos
+
+    event.notify('entity.move', {entity=entity, oldPos=oldPos})
 
     return nil
 end
@@ -245,6 +250,8 @@ function Model:kill(cell)
     -- replace the entity with a corpse, and add the corpse to the cell's item
     -- list
     cell:addItem(Corpse:new())
+
+    event.notify('entity.kill', entity)
 end
 
 function Model:removeMob(entity)

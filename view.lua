@@ -2,6 +2,7 @@
 require 'sprites'
 
 local event = require 'event'
+local tween = require 'tween'
 
 View = {}
 
@@ -15,20 +16,61 @@ end
 function View.create()
     local view = View:new{
         charSheet = nil,
+        dungeonSheet = nil,
+        roguelikeSheet = nil,
+        tiles = nil,
         playerSprite = nil,
         cellWidth = 16,  cellWidth2 = 8,
         cellHeight = 16, cellHeight2 = 8,
         offx = 0,
         offy = 0,
         tintVal = false,
+        animating = 0,
+        entities = {},
+        moveAnimDuration = 0.2,
     }
 
     event.listen('entity.spawn', function(entity)
-        --view:renderEntity(entity)
+        view.entities[entity] = {
+            entity = entity,
+            x = entity.pos.x * view.cellWidth,
+            y = entity.pos.y * view.cellHeight,
+        }
     end)
 
     event.listen('entity.equip', function(entity, item)
         --view:renderEntity(entity)
+    end)
+
+    event.listen('entity.move', function(data)
+        local entry = view.entities[data.entity]
+        local old_x, old_y = entry.x, entry.y
+        local new_x, new_y = data.entity.pos.x * view.cellWidth, data.entity.pos.y * view.cellHeight
+
+        -- maybe quite silly to have two tweens for one animatino?
+        local anim_x = tween.linear(old_x, new_x, view.moveAnimDuration)
+        local anim_y = tween.linear(old_y, new_y, view.moveAnimDuration)
+
+        view.animating = view.animating + 2
+
+        anim_x:onStep(function(step)
+            entry.x = step
+        end):onFinish(function()
+            entry.x = new_x
+            view.animating = view.animating - 1
+        end):start()
+
+        anim_y:onStep(function(step)
+            entry.y = step
+        end):onFinish(function()
+            entry.y = new_y
+            view.animating = view.animating - 1
+        end):start()
+
+    end)
+
+    event.listen('entity.kill', function(entity)
+        view.entities[entity] = nil
     end)
 
     return view
@@ -162,15 +204,19 @@ end
 
 function View:center(model, scale)
     local div = 2 * scale
+
+    -- the rendering metadata for the player
+    local player = self.entities[model.player]
+
     love.graphics.scale(scale,scale)
     love.graphics.translate(
             self.offx +
             love.graphics.getWidth()  / div
-            - model.player.pos.x * self.cellWidth
+            - player.x
             - self.cellWidth / 2,
             self.offy +
             love.graphics.getHeight() / div
-            - model.player.pos.y * self.cellHeight
+            - player.y
             - self.cellHeight / 2)
 end
 
@@ -197,6 +243,8 @@ end
 
 function View:draw(model)
 
+    local ents = {}
+
     self:center(model, 2)
 
     -- draw the base tiles
@@ -207,11 +255,16 @@ function View:draw(model)
             love.graphics.translate(self:gridToScreen(col, row))
 
             self.tint:send('tint', self.tintVal or cell.light)
-            self:drawCell(cell)
+            self:drawCell(cell,ents)
 
             love.graphics.pop()
         end
     end
+
+    for k,ent in pairs(ents) do
+        self:renderEntity(ent)
+    end
+
     love.graphics.setShader()
 
     if self.tintVal ~= false then
@@ -220,7 +273,7 @@ function View:draw(model)
 
 end
 
-function View:drawCell(cell)
+function View:drawCell(cell,ents)
     self:drawTile(cell,0,0)
 
     if cell.prop then
@@ -233,7 +286,7 @@ function View:drawCell(cell)
     end
 
     if cell.entity and (cell.light >= 0.8 or self.tintVal ~= false) then
-        self:renderEntity(cell.entity)
+        table.insert(ents,cell.entity)
     end
 end
 
@@ -269,6 +322,13 @@ function View:drawPlanner(planner)
 end
 
 function View:renderEntity(entity)
+    local ent = self.entities[entity]
+
+    self.tint:send('tint', 1.0)
+
+    love.graphics.push('transform')
+    love.graphics.translate(ent.x, ent.y)
+
     self:drawTile(entity)
 
     -- draw equiptment
@@ -277,4 +337,7 @@ function View:renderEntity(entity)
     self:drawTile(entity.equipped[Head.kind],  0, 0)
     self:drawTile(entity.equipped[Feet.kind],  0, 0)
     self:drawTile(entity.equipped[Hands.kind], 0, 0)
+
+
+    love.graphics.pop()
 end

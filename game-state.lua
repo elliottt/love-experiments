@@ -323,7 +323,7 @@ TweenDemo = GameState:new{
 
         space = function(self)
             self.tween:cancel()
-            return TweenDemo:new():init(self.menu)
+            return self
         end,
     },
 }
@@ -332,7 +332,7 @@ TweenDemo = GameState:new{
 function TweenDemo:init(menu)
     local time
 
-    self.tween = Tween.linear(0,10,0.2)
+    self.tween = Tween.linear(0,10,1.0)
 
     self.menu = menu
     self.msg = 'starting...'
@@ -341,7 +341,7 @@ function TweenDemo:init(menu)
         self.msg = 'stepping: ' .. tostring(x)
     end):onFinish(function(x)
         time = love.timer.getTime() - time
-        self.msg = 'done! (' .. time .. ')'
+        self.msg = 'done! (' .. x .. ", " .. time .. 's)'
     end):start()
 
     time = love.timer.getTime()
