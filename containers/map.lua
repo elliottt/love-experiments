@@ -12,6 +12,7 @@ function Map.create(hash)
     return setmetatable({
         buckets = {},
         hash = hash or function(x) return x end,
+        elems = 0,
     }, Map)
 end
 
@@ -24,6 +25,7 @@ function Map:insert(key,value)
     local bucket = self.buckets[hash]
     if bucket == nil then
         bucket = {}
+        print(key,value,self.buckets[hash])
         self.buckets[hash] = bucket
     end
 
@@ -35,6 +37,13 @@ function Map:insert(key,value)
     end
 
     table.insert(bucket, { key = key, value = value })
+
+    -- only increment the number of elements if we didn't replace
+    self.elems = self.elems + 1
+end
+
+function Map:size()
+    return self.elems
 end
 
 -- Delete an entry from the map
@@ -47,6 +56,7 @@ function Map:delete(key)
         for i, entry in next, bucket do
             if entry.key == key then
                 table.remove(bucket, i)
+                self.elems = self.elems - 1
                 return true, entry.value
             end
         end

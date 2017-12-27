@@ -3,6 +3,7 @@ require 'sprites'
 
 local event = require 'event'
 local tween = require 'tween'
+local Map   = require 'containers.map'
 
 View = {}
 
@@ -25,9 +26,9 @@ function View.create()
         offx = 0,
         offy = 0,
         tintVal = false,
-        animating = 0,
+        animating = Map.create(),
         entities = {},
-        moveAnimDuration = 0.2,
+        moveAnimDuration = 1,
     }
 
     event.listen('entity.spawn', function(entity)
@@ -51,20 +52,20 @@ function View.create()
         local anim_x = tween.inOutCubic(old_x, new_x, view.moveAnimDuration)
         local anim_y = tween.inOutCubic(old_y, new_y, view.moveAnimDuration)
 
-        view.animating = view.animating + 2
+        view.animating:insert(data.entity, {anim_x, anim_y})
 
         anim_x:onStep(function(step)
             entry.x = step
         end):onFinish(function()
             entry.x = new_x
-            view.animating = view.animating - 1
+            view.animating:delete(data.entry)
         end):start()
 
         anim_y:onStep(function(step)
             entry.y = step
         end):onFinish(function()
             entry.y = new_y
-            view.animating = view.animating - 1
+            view.animating:delete(data.entry)
         end):start()
 
     end)
@@ -74,6 +75,21 @@ function View.create()
     end)
 
     return view
+end
+
+function View:animating()
+    return self.animating.size() > 0
+end
+
+function View:cancelAnimation()
+    for k,v in self.animating:iter() do
+        for i,anim in ipairs(v) do
+            anim:cancel()
+        end
+    end
+
+    -- replace the map
+    self.animating = Map.create()
 end
 
 function View:reset()
