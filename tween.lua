@@ -68,7 +68,21 @@ Tween.__index = Tween
 function Tween.linear(s,e,duration)
     local diff = e - s
     return Handle.new(function(handle, scale, dt)
-        return s + diff * scale;
+        return s + diff * scale
+    end, duration)
+end
+
+function Tween.inOutCubic(s,e,duration)
+    local diff = e - s
+    local half = duration / 2
+    return Handle.new(function(handle, scale, dt)
+        local now = dt / half
+        if now < 1 then
+            return s + diff / 2 * now * now * now
+        else
+            now = now - 2
+            return s + diff / 2 * (now * now * now + 2)
+        end
     end, duration)
 end
 

@@ -48,8 +48,8 @@ function View.create()
         local new_x, new_y = data.entity.pos.x * view.cellWidth, data.entity.pos.y * view.cellHeight
 
         -- maybe quite silly to have two tweens for one animatino?
-        local anim_x = tween.linear(old_x, new_x, view.moveAnimDuration)
-        local anim_y = tween.linear(old_y, new_y, view.moveAnimDuration)
+        local anim_x = tween.inOutCubic(old_x, new_x, view.moveAnimDuration)
+        local anim_y = tween.inOutCubic(old_y, new_y, view.moveAnimDuration)
 
         view.animating = view.animating + 2
 
